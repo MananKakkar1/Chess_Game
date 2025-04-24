@@ -3,82 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chessboard Website</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f4f4f4;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            width: 100%;
-        }
-        footer {
-            background-color: #333;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            width: 100%;
-            position: fixed;
-            bottom: 0;
-        }
-        .container {
-            margin: 2rem 0;
-            text-align: center;
-        }
-        .chessboard {
-            display: grid;
-            grid-template-columns: repeat(8, 50px);
-            grid-template-rows: repeat(8, 50px);
-            border: 2px solid black;
-            margin: 0 auto;
-        }
-        .chessboard div {
-            width: 50px;
-            height: 50px;
-        }
-        .chessboard .black {
-            background-color: #8B4513; /* Wood brown */
-        }
-        .chessboard .white {
-            background-color: #F5F5DC; /* Beige */
-        }
-    </style>
+    <title>Chess Game</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>Welcome to the Chessboard Website</h1>
+        <h1>Chess Game</h1>
     </header>
     <div class="container">
         <h2>Interactive Chessboard</h2>
-        <div class="chessboard">
-            <!-- Generate 64 squares -->
-            <script>
-                const chessboard = document.querySelector('.chessboard');
-                for (let row = 0; row < 8; row++) {
-                    for (let col = 0; col < 8; col++) {
-                        const square = document.createElement('div');
-                        if ((row + col) % 2 === 0) {
-                            square.classList.add('white');
-                        } else {
-                            square.classList.add('black');
-                        }
-                        chessboard.appendChild(square);
-                    }
-                }
-            </script>
-        </div>
+        <p id="turn-indicator">Current Turn: White</p> <!-- Turn indicator -->
+        <button id="reset-button">Reset Board</button>
+        <div class="chessboard"></div>
     </div>
     <footer>
-        <p>&copy; 2025 Chessboard Website. All rights reserved.</p>
+        <p>&copy; 2025 Chess Game. All rights reserved.</p>
     </footer>
+    <script src="script.js"></script>
 </body>
 </html>
