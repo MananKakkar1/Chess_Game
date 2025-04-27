@@ -44,12 +44,33 @@ function generateChessboard() {
 
             const piece = boardState[row][col];
             if (piece) {
-                square.textContent = piece;
+                const pieceClass = getPieceClass(piece);
+                if (pieceClass) {
+                    square.classList.add(pieceClass);
+                }
             }
 
             square.addEventListener('click', () => handleSquareClick(square));
             chessboard.appendChild(square);
         }
+    }
+}
+
+function getPieceClass(piece) {
+    switch (piece) {
+        case '♙': return 'white-pawn';
+        case '♟': return 'black-pawn';
+        case '♖': return 'white-rook';
+        case '♜': return 'black-rook';
+        case '♘': return 'white-knight';
+        case '♞': return 'black-knight';
+        case '♗': return 'white-bishop';
+        case '♝': return 'black-bishop';
+        case '♕': return 'white-queen';
+        case '♛': return 'black-queen';
+        case '♔': return 'white-king';
+        case '♚': return 'black-king';
+        default: return null;
     }
 }
 
@@ -60,16 +81,20 @@ function handleSquareClick(square) {
         const toRow = parseInt(square.dataset.row);
         const toCol = parseInt(square.dataset.col);
 
-        const piece = selectedSquare.textContent;
-        const targetPiece = square.textContent;
+        const pieceClass = [...selectedSquare.classList].find(cls => cls.includes('-'));
+        const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
+
+        console.log(`Moving ${pieceClass} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
+        console.log(`Target piece class: ${targetPieceClass}`);
 
         if (pieceColors[toRow][toCol] === pieceColors[fromRow][fromCol]) {
             selectedSquare.classList.remove('selected');
             selectedSquare = null;
             return;
         }
+        console.log("Checking move validity:", isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass));
 
-        if (isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPiece)) {
+        if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
             movePiece(selectedSquare, square, fromRow, fromCol, toRow, toCol);
             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
             updateTurnIndicator();
@@ -77,7 +102,7 @@ function handleSquareClick(square) {
 
         selectedSquare.classList.remove('selected');
         selectedSquare = null;
-    } else if (square.textContent) {
+    } else if ([...square.classList].some(cls => cls.includes('-'))) {
         const row = parseInt(square.dataset.row);
         const col = parseInt(square.dataset.col);
 
@@ -91,46 +116,47 @@ function handleSquareClick(square) {
     }
 }
 
-function isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPiece) {
+function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass) {
     const rowDiff = toRow - fromRow;
     const colDiff = Math.abs(toCol - fromCol);
-
-    switch (piece) {
-        case '♙':
+    switch (pieceClass) {
+        case 'white-pawn':
             if (fromRow === 6 && rowDiff === -2 && colDiff === 0 && !boardState[toRow][toCol] && !boardState[toRow + 1][toCol]) {
                 return true; 
             }
             if (rowDiff === -1 && colDiff === 0 && !boardState[toRow][toCol]) {
                 return true; 
             }
-            if (rowDiff === -1 && colDiff === 1 && targetPiece && pieceColors[toRow][toCol] === 'black') {
+            if (rowDiff === -1 && colDiff === 1 && targetPieceClass && pieceColors[toRow][toCol] === 'black') {
                 return true;
             }
             return false;
-        case '♟':
+        case 'black-pawn':
+            console.log("Black pawn move check:", pieceColors[toRow][toCol]);
             if (fromRow === 1 && rowDiff === 2 && colDiff === 0 && !boardState[toRow][toCol] && !boardState[toRow - 1][toCol]) {
                 return true; 
             }
             if (rowDiff === 1 && colDiff === 0 && !boardState[toRow][toCol]) {
                 return true; 
             }
-            if (rowDiff === 1 && colDiff === 1 && targetPiece && pieceColors[toRow][toCol] === 'white') {
+            if (rowDiff === 1 && colDiff === 1 && targetPieceClass && pieceColors[toRow][toCol] === 'white') {
                 return true;
             }
             return false;
-        case '♜':
+        case 'white-rook':
+        case 'black-rook':
             return (rowDiff === 0 || colDiff === 0); 
-        case '♘':
-        case '♞':
+        case 'white-knight':
+        case 'black-knight':
             return (Math.abs(rowDiff) === 2 && colDiff === 1) || (Math.abs(rowDiff) === 1 && colDiff === 2); 
-        case '♗':
-        case '♝':
+        case 'white-bishop':
+        case 'black-bishop':
             return Math.abs(rowDiff) === colDiff; 
-        case '♕':
-        case '♛':
+        case 'white-queen':
+        case 'black-queen':
             return (Math.abs(rowDiff) === colDiff) || (rowDiff === 0 || colDiff === 0); 
-        case '♔':
-        case '♚':
+        case 'white-king':
+        case 'black-king':
             return Math.abs(rowDiff) <= 1 && colDiff <= 1; 
         default:
             return false;
@@ -138,15 +164,21 @@ function isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPiece) {
 }
 
 function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
-    const piece = fromSquare.textContent;
-    boardState[toRow][toCol] = piece;
+    const pieceClass = [...fromSquare.classList].find(cls => cls.includes('-'));
+    const targetPieceClass = [...toSquare.classList].find(cls => cls.includes('-'));
+
+    boardState[toRow][toCol] = boardState[fromRow][fromCol];
     boardState[fromRow][fromCol] = null;
 
     pieceColors[toRow][toCol] = pieceColors[fromRow][fromCol];
     pieceColors[fromRow][fromCol] = null;
 
-    toSquare.textContent = piece;
-    fromSquare.textContent = '';
+    if (targetPieceClass) {
+        toSquare.classList.remove(targetPieceClass);
+    }
+
+    toSquare.classList.add(pieceClass);
+    fromSquare.classList.remove(pieceClass);
     fromSquare.classList.remove('selected');
 }
 

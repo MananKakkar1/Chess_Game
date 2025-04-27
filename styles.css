@@ -46,9 +46,88 @@ footer {
 .chessboard .white {
     background-color: #F5F5DC; 
 }
+
+/*Chess pieces classes*/
+
+.chessboard div[class*="-"] {
+    background-image: url('chess_pieces_sprite.png');
+    background-size: 600%;
+    background-repeat: no-repeat;
+}
+.white-king {
+    background-position: 0% 0%;
+}
+
+.black-king {
+    background-position: 0% 100%;
+}
+
+.white-queen {
+    background-position: 20% 0%;
+}
+
+.black-queen {
+    background-position: 20% 100%;
+}
+
+.white-bishop {
+    background-position: 40% 0%;
+}
+
+.black-bishop {
+    background-position: 40% 100%;
+}
+
+.white-knight {
+    background-position: 60% 0%;
+}
+
+.black-knight {
+    background-position: 60% 100%;
+}
+
+.white-rook {
+    background-position: 80% 0%;
+}
+
+.black-rook {
+    background-position: 80% 100%;
+}
+
+.white-pawn {
+    background-position: 100% 0%;
+}
+
+.black-pawn {
+    background-position: 100% 100%;
+}
+
 .selected {
     background-color: red; 
 }
+
+/*Captured pieces*/
+.captured-pieces {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
+.captured-pieces-container {
+    display: flex;
+    gap: 5px;
+    min-height: 50px;
+    align-items: center;
+}
+
+.captured-pieces-container div {
+    width: 40px;
+    height: 40px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
 #turn-indicator {
     color: white;
     font-size: 1.2rem;
