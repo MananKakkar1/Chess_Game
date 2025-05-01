@@ -1,55 +1,248 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
+    background-color: #121212;
+    color: white;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #1c1c1c;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+header .logo h1 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: white;
+    margin: 0;
+}
+
+nav {
+    display: flex;
+    justify-content: flex-end; 
+    align-items: center;
+}
+
+.nav-links {
+    list-style: none; 
+    display: flex;
+    gap: 20px; 
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li {
+    display: inline; 
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: white;
+    font-size: 1rem;
+    padding: 10px 15px;
+    position: relative; 
+    transition: color 0.3s ease;
+    
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: #00dff7; 
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #00dff7;
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+    width: 100%; 
+}
+
+main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #302e2b;
+    justify-content: center;
+    padding: 20px;
+    min-height: 80vh;
 }
-header {
-    background-color: #333;
-    color: white;
-    padding: 1rem;
-    text-align: center;
-    width: 100%;
-}
-h2 {
-    color: white;
-}
-h3 {
-    color: white;
-}
-footer {
-    background-color: #333;
-    color: white;
-    padding: 1rem;
-    text-align: center;
-    width: 100%;
-    position: fixed;
-    bottom: 0;
-}
+
 .container {
-    margin: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    padding-bottom: 5rem;
+    padding: 20px;
+    width: 90%;
+    max-width: 800px;
+    height: auto;
+    margin: auto;
+    background-color: transparent;
+    box-shadow: none;
 }
+
+h1 {
+    font-size: 2rem;
+    color: #00dff7;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 1.8rem;
+    color: #00dff7;
+    margin-bottom: 10px;
+}
+
+#turn-indicator {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #ccc;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #00dff7; 
+    color: white;
+    border: 1px solid #00dff7; 
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative; 
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+button::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #00dff7; 
+    transition: width 0.3s ease;
+}
+
+button:hover {
+    color: #00dff7;
+    background-color: transparent;
+}
+
+button:hover::after {
+    width: 100%;
+}
+
 .chessboard {
     display: grid;
-    grid-template-columns: repeat(8, 50px);
-    grid-template-rows: repeat(8, 50px);
-    margin: 0 auto;
-    align-content: center;
-    width: 400px; 
-    height: 400px;
-    overflow: hidden; 
-    position: relative; 
+    grid-template-columns: repeat(8, 60px);
+    grid-template-rows: repeat(8, 60px);
+    gap: 0;
+    margin: 20px auto;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
 }
+
 .chessboard div {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
 }
+
+.chessboard .white {
+    background-color: #f0d9b5;
+}
+
 .chessboard .black {
+    background-color: #b58863;
+}
+
+footer {
+    text-align: center;
+    background-color: #1c1c1c;
+    color: white;
+    padding: 10px;
+    width: 100%;
+    position: relative;
+    bottom: 0;
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.welcome-container {
+    text-align: center;
+    margin-top: 0; 
+    color: white;
+}
+
+.welcome-container h2 {
+    font-size: 2.5rem;
+    color: #00dff7;
+    margin-bottom: 20px;
+}
+
+.welcome-container p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #ccc;
+}
+
+.options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.options .button {
+    display: inline-block;
+    padding: 15px 30px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    background-color: #00dff7;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.options .button:hover {
+    background-color: #219150;
+}
+
+.rules-container {
+    text-align: left;
+    margin: 50px auto;
+    padding: 20px;
+    max-width: 800px;
     background-color: #8B4513; 
 }
 .chessboard .white {
@@ -146,6 +339,24 @@ footer {
 
 #turn-indicator {
     color: white;
+}
+
+.rules-container h2 {
+    font-size: 2.5rem;
+    color: #00dff7;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.rules-container ol {
     font-size: 1.2rem;
-    margin-bottom: 1rem;
+    line-height: 1.6;
+    margin-left: 20px;
+    color: #ccc;
+}
+
+.rules-container ul {
+    margin-top: 10px;
+    margin-left: 20px;
+    list-style-type: disc;
 }
