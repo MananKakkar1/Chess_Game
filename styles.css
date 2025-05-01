@@ -17,6 +17,9 @@ header {
 h2 {
     color: white;
 }
+h3 {
+    color: white;
+}
 footer {
     background-color: #333;
     color: white;
@@ -29,12 +32,18 @@ footer {
 .container {
     margin: 2rem 0;
     text-align: center;
+    padding-bottom:: 5rem;
 }
 .chessboard {
     display: grid;
     grid-template-columns: repeat(8, 50px);
     grid-template-rows: repeat(8, 50px);
     margin: 0 auto;
+    align-content: center;
+    width: 400px; 
+    height: 400px;
+    overflow: hidden; 
+    position: relative; 
 }
 .chessboard div {
     width: 50px;
@@ -47,13 +56,14 @@ footer {
     background-color: #F5F5DC; 
 }
 
-/*Chess pieces classes*/
-
-.chessboard div[class*="-"] {
+/* Shared styles for all chess pieces */
+.piece {
     background-image: url('chess_pieces_sprite.png');
     background-size: 600%;
     background-repeat: no-repeat;
 }
+
+/* Specific positions for each piece */
 .white-king {
     background-position: 0% 0%;
 }
@@ -102,30 +112,36 @@ footer {
     background-position: 100% 100%;
 }
 
-.selected {
-    background-color: red; 
-}
-
-/*Captured pieces*/
-.captured-pieces {
+/* Captured pieces-specific styles */
+.captured-pieces-container{
     display: flex;
-    justify-content: space-between;
-    margin: 20px 0;
-}
-
-.captured-pieces-container {
-    display: flex;
-    gap: 5px;
-    min-height: 50px;
+    flex-direction: row;
+    /* gap: 5px; */
+    justify-content: flex-start;
     align-items: center;
+    /* Overflow prevention */
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* Apply the shared piece styles explicitly */
+.chessboard div[class*="-"] {
+    background-image: url('chess_pieces_sprite.png');
+    background-size: 600%;
+    background-repeat: no-repeat;
+    width: 50px;
+    height: 50px;
+    
 }
 
 .captured-pieces-container div {
-    width: 40px;
-    height: 40px;
-    background-size: contain;
+    background-image: url('chess_pieces_sprite.png');
+    background-size: 600%;
     background-repeat: no-repeat;
-    background-position: center;
+    width: 50px;
+    height: 50px;
+    margin-bottom: 5rem;
+    /* padding: 5px; Added padding for better visibility */
 }
 
 #turn-indicator {

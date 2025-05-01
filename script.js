@@ -23,6 +23,9 @@ const initialColors = [
     ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white']
 ];
 
+const capturedBlackPiecesContainer = document.getElementById('captured-black');
+const capturedWhitePiecesContainer = document.getElementById('captured-white');
+
 let boardState = initialBoard.map(row => row.slice());
 let pieceColors = initialColors.map(row => row.slice());
 let selectedSquare = null;
@@ -84,15 +87,15 @@ function handleSquareClick(square) {
         const pieceClass = [...selectedSquare.classList].find(cls => cls.includes('-'));
         const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
 
-        console.log(`Moving ${pieceClass} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
-        console.log(`Target piece class: ${targetPieceClass}`);
+        // console.log(`Moving ${pieceClass} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
+        // console.log(`Target piece class: ${targetPieceClass}`);
 
         if (pieceColors[toRow][toCol] === pieceColors[fromRow][fromCol]) {
             selectedSquare.classList.remove('selected');
             selectedSquare = null;
             return;
         }
-        console.log("Checking move validity:", isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass));
+        // console.log("Checking move validity:", isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass));
 
         if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
             movePiece(selectedSquare, square, fromRow, fromCol, toRow, toCol);
@@ -132,7 +135,7 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
             }
             return false;
         case 'black-pawn':
-            console.log("Black pawn move check:", pieceColors[toRow][toCol]);
+            // console.log("Black pawn move check:", pieceColors[toRow][toCol]);
             if (fromRow === 1 && rowDiff === 2 && colDiff === 0 && !boardState[toRow][toCol] && !boardState[toRow - 1][toCol]) {
                 return true; 
             }
@@ -175,8 +178,20 @@ function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
 
     if (targetPieceClass) {
         toSquare.classList.remove(targetPieceClass);
+
+        const capturedPiece = document.createElement('div');
+        capturedPiece.classList.add(targetPieceClass);
+        
+        if (pieceColors[toRow][toCol] === 'white') {
+            // console.log("Captured piece color:", pieceColors[toRow][toCol]);
+            capturedWhitePiecesContainer.appendChild(capturedPiece);
+        } else {
+            // console.log("Captured piece color2:", pieceColors[toRow][toCol]);
+            capturedBlackPiecesContainer.appendChild(capturedPiece);
+        }
     }
 
+    // Move the piece to the target square
     toSquare.classList.add(pieceClass);
     fromSquare.classList.remove(pieceClass);
     fromSquare.classList.remove('selected');
@@ -191,6 +206,10 @@ function resetBoard() {
     pieceColors = initialColors.map(row => row.slice());
     selectedSquare = null;
     currentPlayer = 'white';
+
+    capturedBlackPiecesContainer.innerHTML = '';
+    capturedWhitePiecesContainer.innerHTML = '';
+
     updateTurnIndicator();
     generateChessboard();
 }
