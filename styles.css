@@ -14,11 +14,12 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 10px 10px;
     background-color: #1c1c1c;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
+    width: 100%;
     z-index: 1000;
 }
 
@@ -243,7 +244,7 @@ footer p {
     margin: 50px auto;
     padding: 20px;
     max-width: 800px;
-    background-color: #8B4513; 
+    /* background-color: #8B4513; Poop color */
 }
 .chessboard .white {
     background-color: #F5F5DC; 
@@ -322,8 +323,8 @@ footer p {
     background-image: url('chess_pieces_sprite.png');
     background-size: 600%;
     background-repeat: no-repeat;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     
 }
 
@@ -331,8 +332,8 @@ footer p {
     background-image: url('chess_pieces_sprite.png');
     background-size: 600%;
     background-repeat: no-repeat;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     margin-bottom: 5rem;
     /* padding: 5px; Added padding for better visibility */
 }
