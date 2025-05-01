@@ -48,18 +48,34 @@ nav {
 }
 
 .nav-links a {
-    text-decoration: none; 
-    color: white; 
+    text-decoration: none;
+    color: white;
     font-size: 1rem;
-    padding: 10px 15px; 
-    border-radius: 5px; 
-    transition: background-color 0.3s ease, color 0.3s ease;
+    padding: 10px 15px;
+    position: relative; 
+    transition: color 0.3s ease;
+    
 }
 
 .nav-links a:hover,
 .nav-links a.active {
-    background-color: #27ae60; 
-    color: white;
+    color: #00dff7; 
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #00dff7;
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+    width: 100%; 
 }
 
 main {
@@ -88,13 +104,13 @@ main {
 
 h1 {
     font-size: 2rem;
-    color: #27ae60;
+    color: #00dff7;
     margin-bottom: 20px;
 }
 
 h2 {
     font-size: 1.8rem;
-    color: #27ae60;
+    color: #00dff7;
     margin-bottom: 10px;
 }
 
@@ -107,16 +123,33 @@ h2 {
 button {
     padding: 10px 20px;
     font-size: 1rem;
-    background-color: #27ae60;
+    background-color: #00dff7; 
     color: white;
-    border: 1px solid #1c1c1c;
+    border: 1px solid #00dff7; 
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    position: relative; 
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+button::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #00dff7; 
+    transition: width 0.3s ease;
 }
 
 button:hover {
-    background-color: #219150;
+    color: #00dff7;
+    background-color: transparent;
+}
+
+button:hover::after {
+    width: 100%;
 }
 
 .chessboard {
@@ -163,4 +196,72 @@ footer {
 footer p {
     margin: 0;
     font-size: 0.9rem;
+}
+
+.welcome-container {
+    text-align: center;
+    margin-top: 0; 
+    color: white;
+}
+
+.welcome-container h2 {
+    font-size: 2.5rem;
+    color: #00dff7;
+    margin-bottom: 20px;
+}
+
+.welcome-container p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #ccc;
+}
+
+.options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.options .button {
+    display: inline-block;
+    padding: 15px 30px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    background-color: #00dff7;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.options .button:hover {
+    background-color: #219150;
+}
+
+.rules-container {
+    text-align: left;
+    margin: 50px auto;
+    padding: 20px;
+    max-width: 800px;
+    color: white;
+}
+
+.rules-container h2 {
+    font-size: 2.5rem;
+    color: #00dff7;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.rules-container ol {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-left: 20px;
+    color: #ccc;
+}
+
+.rules-container ul {
+    margin-top: 10px;
+    margin-left: 20px;
+    list-style-type: disc;
 }
