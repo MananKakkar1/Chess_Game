@@ -70,9 +70,32 @@ function handleSquareClick(square) {
         }
 
         if (isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPiece)) {
+            const originalPiece = boardState[toRow][toCol];
+            const originalColor = pieceColors[toRow][toCol];
+
             movePiece(selectedSquare, square, fromRow, fromCol, toRow, toCol);
+
+            if (isKingInCheck(currentPlayer)) {
+                movePiece(square, selectedSquare, toRow, toCol, fromRow, fromCol);
+                boardState[toRow][toCol] = originalPiece;
+                pieceColors[toRow][toCol] = originalColor;
+
+                alert("Invalid move: Your king is in check!");
+                selectedSquare.classList.remove('selected');
+                selectedSquare = null;
+                return;
+            }
             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
             updateTurnIndicator();
+
+            if (isKingInCheck(currentPlayer)) {
+                if (isCheckmate(currentPlayer)) {
+                    alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins! Checkmate!`);
+                    return;
+                } else {
+                    alert(`${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} King is in check!`);
+                }
+            }
         }
 
         selectedSquare.classList.remove('selected');
@@ -96,42 +119,46 @@ function isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPiece) {
     const colDiff = Math.abs(toCol - fromCol);
 
     switch (piece) {
-        case '♙':
+        case '♙': 
             if (fromRow === 6 && rowDiff === -2 && colDiff === 0 && !boardState[toRow][toCol] && !boardState[toRow + 1][toCol]) {
-                return true; 
+                return true;
             }
             if (rowDiff === -1 && colDiff === 0 && !boardState[toRow][toCol]) {
-                return true; 
+                return true;
             }
             if (rowDiff === -1 && colDiff === 1 && targetPiece && pieceColors[toRow][toCol] === 'black') {
-                return true;
+                return true; 
             }
             return false;
-        case '♟':
+        case '♟': 
             if (fromRow === 1 && rowDiff === 2 && colDiff === 0 && !boardState[toRow][toCol] && !boardState[toRow - 1][toCol]) {
-                return true; 
+                return true;
             }
             if (rowDiff === 1 && colDiff === 0 && !boardState[toRow][toCol]) {
-                return true; 
-            }
-            if (rowDiff === 1 && colDiff === 1 && targetPiece && pieceColors[toRow][toCol] === 'white') {
                 return true;
             }
+            if (rowDiff === 1 && colDiff === 1 && targetPiece && pieceColors[toRow][toCol] === 'white') {
+                return true; 
+            }
             return false;
-        case '♜':
-            return (rowDiff === 0 || colDiff === 0); 
-        case '♘':
-        case '♞':
-            return (Math.abs(rowDiff) === 2 && colDiff === 1) || (Math.abs(rowDiff) === 1 && colDiff === 2); 
-        case '♗':
-        case '♝':
-            return Math.abs(rowDiff) === colDiff; 
-        case '♕':
-        case '♛':
-            return (Math.abs(rowDiff) === colDiff) || (rowDiff === 0 || colDiff === 0); 
-        case '♔':
-        case '♚':
-            return Math.abs(rowDiff) <= 1 && colDiff <= 1; 
+        case '♜': 
+            return (rowDiff === 0 || colDiff === 0);
+        case '♘': 
+        case '♞': 
+            return (Math.abs(rowDiff) === 2 && colDiff === 1) || (Math.abs(rowDiff) === 1 && colDiff === 2);
+        case '♗': 
+        case '♝': 
+            if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
+                return Math.abs(rowDiff) === colDiff;
+            }
+        case '♕': 
+        case '♛': 
+            if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
+                return (Math.abs(rowDiff) === colDiff) || (rowDiff === 0 || colDiff === 0);
+            }
+        case '♔': 
+        case '♚': 
+            return Math.abs(rowDiff) <= 1 && colDiff <= 1;
         default:
             return false;
     }
@@ -163,5 +190,134 @@ function resetBoard() {
     generateChessboard();
 }
 
+function isKingInCheck(playerColor) { 
+    let kingRow, kingCol;
+
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const piece = boardState[row][col];
+            if (
+                (playerColor === 'white' && piece === '♔') ||
+                (playerColor === 'black' && piece === '♚')
+            ) {
+                kingRow = row;
+                kingCol = col;
+                break;
+            }
+        }
+    }
+
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const piece = boardState[row][col];
+            const pieceColor = pieceColors[row][col];
+
+            if (piece && pieceColor !== playerColor && pieceColor !== null) {
+                if (isValidMove(piece, row, col, kingRow, kingCol, '♔' || '♚') && !isPathBlocked(row, col, kingRow, kingCol)) {
+                    return true; 
+                }
+            }
+        }
+    }
+
+    return false; 
+}
+
+function isCheckmate(playerColor) {
+    let kingRow, kingCol = getKing(playerColor);
+    for (let toRow = kingRow - 1; toRow <= kingRow + 1; toRow++) {
+        for (let toCol = kingCol - 1; toCol <= kingCol + 1; toCol++) {
+            if (toRow >= 0 && toRow < 8 && toCol >= 0 && toCol < 8 && (toRow !== kingRow || toCol !== kingCol)) {
+                const targetPiece = boardState[toRow][toCol];
+                const targetColor = pieceColors[toRow][toCol];
+
+                if (targetColor !== playerColor && isValidMove('♔', kingRow, kingCol, toRow, toCol, targetPiece)) {
+                    simulateMove(kingRow, kingCol, toRow, toCol);
+                    if (!kingInCheck) {
+                        return false; 
+                    }
+                }
+            }
+        }
+    }
+
+    for (let fromRow = 0; fromRow < 8; fromRow++) {
+        for (let fromCol = 0; fromCol < 8; fromCol++) {
+            const piece = boardState[fromRow][fromCol];
+            const pieceColor = pieceColors[fromRow][fromCol];
+
+            if (piece && pieceColor === playerColor) {
+                for (let toRow = 0; toRow < 8; toRow++) {
+                    for (let toCol = 0; toCol < 8; toCol++) {
+                        const targetPiece = boardState[toRow][toCol];
+                        const targetColor = pieceColors[toRow][toCol];
+
+                        if (targetColor !== playerColor && isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPiece)) {
+                            simulateMove(fromRow, fromCol, toRow, toCol);
+                            if (!kingInCheck) {
+                                return false; 
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return true; 
+}
+
+function isPathBlocked(fromRow, fromCol, toRow, toCol) {
+    const rowStep = Math.sign(toRow - fromRow);
+    const colStep = Math.sign(toCol - fromCol);
+
+    let currentRow = fromRow + rowStep;
+    let currentCol = fromCol + colStep;
+
+    while (currentRow !== toRow || currentCol !== toCol) {
+        if (boardState[currentRow][currentCol] !== null) {
+            return true; 
+        }
+        currentRow += rowStep;
+        currentCol += colStep;
+    }
+
+    return false; 
+}
+
+function simulateMove(fromRow, fromCol, toRow, toCol) {
+    const originalPiece = boardState[toRow][toCol];
+    const originalColor = pieceColors[toRow][toCol];
+
+    boardState[toRow][toCol] = piece;
+    boardState[fromRow][fromCol] = null;
+    pieceColors[toRow][toCol] = pieceColor;
+    pieceColors[fromRow][fromCol] = null;
+
+    const kingInCheck = isKingInCheck(playerColor);
+
+    boardState[fromRow][fromCol] = piece;
+    boardState[toRow][toCol] = originalPiece;
+    pieceColors[fromRow][fromCol] = pieceColor;
+    pieceColors[toRow][toCol] = originalColor;
+}
+
+function getKing(color) {
+    let kingRow, kingCol;
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const piece = boardState[row][col];
+            if (
+                (playerColor === 'white' && piece === '♔') ||
+                (playerColor === 'black' && piece === '♚')
+            ) {
+                kingRow = row;
+                kingCol = col;
+                break;
+            }
+        }
+    }
+    return { row: kingRow, col: kingCol };
+}
 generateChessboard();
 document.querySelector('#reset-button').addEventListener('click', resetBoard);
