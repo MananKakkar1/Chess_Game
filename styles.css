@@ -342,6 +342,12 @@ footer p {
     color: white;
 }
 
+.valid-move {
+    outline: 2px solid rgba(0, 255, 0, 0.8); /* Add an outline instead of changing the background */
+    z-index: 1; /* Ensure it appears above the piece */
+    outline-offset: -2px; /* Adjust the outline offset */
+}
+
 .rules-container h2 {
     font-size: 2.5rem;
     color: #00dff7;

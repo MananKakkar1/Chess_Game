@@ -78,6 +78,7 @@ function getPieceClass(piece) {
 }
 
 function handleSquareClick(square) {
+    clearHighlights();
     if (selectedSquare) {
         const fromRow = parseInt(selectedSquare.dataset.row);
         const fromCol = parseInt(selectedSquare.dataset.col);
@@ -139,6 +140,8 @@ function handleSquareClick(square) {
 
         selectedSquare = square;
         square.classList.add('selected');
+
+        highlightValidMoves(row, col, [...square.classList].find(cls => cls.includes('-')));
     }
 }
 
@@ -174,6 +177,7 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
             if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
                 return (rowDiff === 0 || colDiff === 0); 
             }
+            return false;
         case 'white-knight':
         case 'black-knight':
             return (Math.abs(rowDiff) === 2 && colDiff === 1) || (Math.abs(rowDiff) === 1 && colDiff === 2); 
@@ -182,11 +186,13 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
             if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
                 return Math.abs(rowDiff) === colDiff;
             }
+            return false;
         case 'white-queen':
         case 'black-queen':
             if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
                 return (Math.abs(rowDiff) === colDiff) || (rowDiff === 0 || colDiff === 0);
             }
+            return false;
         case 'white-king':
         case 'black-king':
             return Math.abs(rowDiff) <= 1 && colDiff <= 1; 
@@ -386,5 +392,24 @@ function getKing(color) {
     }
     return { row: kingRow, col: kingCol };
 }
+
+function highlightValidMoves(fromRow, fromCol, pieceClass) {
+    for (let toRow = 0; toRow < 8; toRow++) {
+        for (let toCol = 0; toCol < 8; toCol++) {
+            const targetSquare = document.querySelector(`.chessboard div[data-row="${toRow}"][data-col="${toCol}"]`);
+            const targetPieceClass = targetSquare ? [...targetSquare.classList].find(cls => cls.includes('-')) : null;
+
+            if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
+                targetSquare.classList.add('valid-move');
+            }
+        }
+    }
+}
+
+function clearHighlights() {
+    const highlightedSquares = document.querySelectorAll('.valid-move');
+    highlightedSquares.forEach(square => square.classList.remove('valid-move'));
+}
+
 generateChessboard();
 document.querySelector('#reset-button').addEventListener('click', resetBoard);
