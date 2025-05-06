@@ -92,9 +92,17 @@ function handleSquareClick(square) {
         if (pieceColors[toRow][toCol] === pieceColors[fromRow][fromCol]) {
             selectedSquare.classList.remove('selected');
             selectedSquare = null;
+            // alert("You cannot capture your own piece!");
             return;
         }
-
+        console.log(`Moving ${pieceClass} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
+        console.log(`Target piece: ${targetPieceClass}, Target color: ${targetColor}`);
+        console.log(`Current player: ${currentPlayer}`);
+        console.log(`Piece color: ${pieceColors[fromRow][fromCol]}`);
+        console.log(`Is Piece able to move? ` + isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass));
+        console.log(`Is Path blocked? ` + isPathBlocked(fromRow, fromCol, toRow, toCol));
+        console.log(`Is King in check? ` + isKingInCheck(currentPlayer));
+        console.log(`Is Checkmate? ` + isCheckmate(currentPlayer));
         if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
             const originalPiece = boardState[toRow][toCol];
             const originalColor = pieceColors[toRow][toCol];
@@ -126,6 +134,7 @@ function handleSquareClick(square) {
 
         selectedSquare.classList.remove('selected');
         selectedSquare = null;
+        return;
     } else if ([...square.classList].some(cls => cls.includes('-'))) {
         const row = parseInt(square.dataset.row);
         const col = parseInt(square.dataset.col);
@@ -137,7 +146,9 @@ function handleSquareClick(square) {
 
         selectedSquare = square;
         square.classList.add('selected');
+        return;
     }
+    // console.log('Something went wrong!');
 }
 
 function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass) {
@@ -221,6 +232,8 @@ function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
     toSquare.classList.add(pieceClass);
     fromSquare.classList.remove(pieceClass);
     fromSquare.classList.remove('selected');
+    pieceColors[toRow][toCol] = pieceColors[fromRow][fromCol];
+    pieceColors[fromRow][fromCol] = null;
 }
 
 function updateTurnIndicator() {
@@ -247,7 +260,7 @@ function isKingInCheck(playerColor) {
         for (let col = 0; col < 8; col++) {
             const square = document.querySelector(`.chessboard div[data-row="${row}"][data-col="${col}"]`);
             const piece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
-            if ((piece === 'white-king') || (piece === 'black-king')) {
+            if (piece === `${playerColor}-king`) {
                 kingRow = row;
                 kingCol = col;
                 kingClass = piece;
@@ -260,12 +273,16 @@ function isKingInCheck(playerColor) {
         for (let col = 0; col < 8; col++) {
             const square = document.querySelector(`.chessboard div[data-row="${row}"][data-col="${col}"]`);
             const piece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
-            const pieceColor = piece && piece.startsWith('white') ? 'white' : 'black';
+            const pieceColor = piece && piece.startsWith('white') ? 'white' : (piece && piece.startsWith('black') ? 'black' : null);
+            // console.log(`Checking piece: ${piece} at (${row}, ${col}) with color ${pieceColor}`);
             if (pieceColor !== playerColor && pieceColor !== null) {
                 if (kingRow === undefined || kingCol === undefined) {
                     return false;
                 } 
                 if (isValidMove(piece, row, col, kingRow, kingCol, kingClass) && !isPathBlocked(row, col, kingRow, kingCol)) {
+                    const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
+                    const targetColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
+                    // console.log(`King is in check by ${piece} at (${row}, ${col})`);
                     return true;
                 }
             }
@@ -282,7 +299,7 @@ function isCheckmate(playerColor) {
         for (let col = 0; col < 8; col++) {
             const square = document.querySelector(`.chessboard div[data-row="${row}"][data-col="${col}"]`);
             const piece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
-            if ((piece === 'white-king') || (piece === 'black-king')) {
+            if (piece === `${playerColor}-king`) {
                 kingRow = row;
                 kingCol = col;
                 kingClass = piece;
@@ -300,6 +317,7 @@ function isCheckmate(playerColor) {
                 if (targetColor !== playerColor && isValidMove(targetPieceClass, kingRow, kingCol, toRow, toCol, kingClass)) {
                     kingInCheck = simulateMove(kingRow, kingCol, toRow, toCol);
                     if (!kingInCheck) {
+                        console.log(`King can move to (${toRow}, ${toCol}) without being in check`);
                         return false; 
                     }
                 }
@@ -312,14 +330,15 @@ function isCheckmate(playerColor) {
             const square = document.querySelector(`.chessboard div[data-row="${fromRow}"][data-col="${fromCol}"]`);
             const piece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
             const pieceColor = pieceColors[fromRow][fromCol];
-
-            if (piece && pieceColor === playerColor) {
+            if (piece && pieceColor !== playerColor) {
                 for (let toRow = 0; toRow < 8; toRow++) {
                     for (let toCol = 0; toCol < 8; toCol++) {
                         const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
-                        if (targetColor !== playerColor && isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
+                        const targetColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
+                        if (targetColor === playerColor && isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
                             kingInCheck = simulateMove(fromRow, fromCol, toRow, toCol);
                             if (!kingInCheck) {
+                                console.log(`${piece} can move from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol}) without putting the ${playerColor} king in check`);
                                 return false; 
                             }
                         }
@@ -347,12 +366,24 @@ function isPathBlocked(fromRow, fromCol, toRow, toCol) {
     let currentRow = fromRow + rowStep;
     let currentCol = fromCol + colStep;
     while (currentRow !== toRow || currentCol !== toCol) {
-        if (boardState[currentRow][currentCol] !== null) {
+        // Failsafe: if the current square is out of bounds, break the loop
+        if (currentRow < 0 || currentRow >= 8 || currentCol < 0 || currentCol >= 8) {
+            break;
+        }
+        // Extract the current square
+        const square = document.querySelector(`.chessboard div[data-row="${currentRow}"][data-col="${currentCol}"]`);
+        const piece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
+        // console.log(currentCol, currentRow, piece);
+        // Check if the square is occupied
+        if (piece) {
+            // console.log('Path is blocked at', currentRow, currentCol, 'by', square.classList[1]);
+            // console.log('path is blocked by', square.classList[1]);
             return true; 
         }
         currentRow += rowStep;
         currentCol += colStep;
     }
+    // console.log('Path is clear from', fromRow, fromCol, 'to', toRow, toCol);
     return false; 
 }
 
