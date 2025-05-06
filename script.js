@@ -111,10 +111,6 @@ function handleSquareClick(square) {
 
             if (isKingInCheck(currentPlayer)) {
                 movePiece(square, selectedSquare, toRow, toCol, fromRow, fromCol);
-                boardState[fromRow][fromCol] = originalPiece;
-                pieceColors[fromRow][fromCol] = originalColor;
-                boardState[toRow][toCol] = target;
-                pieceColors[toRow][toCol] = targetColor;
                 alert("Invalid move: Your king is in check!");
                 selectedSquare.classList.remove('selected');
                 selectedSquare = null;
@@ -317,7 +313,6 @@ function isCheckmate(playerColor) {
                 if (targetColor !== playerColor && isValidMove(targetPieceClass, kingRow, kingCol, toRow, toCol, kingClass)) {
                     kingInCheck = simulateMove(kingRow, kingCol, toRow, toCol);
                     if (!kingInCheck) {
-                        // console.log(`King can move to (${toRow}, ${toCol}) without being in check`);
                         return false; 
                     }
                 }
@@ -404,23 +399,13 @@ function simulateMove(fromRow, fromCol, toRow, toCol) {
     const pieceClass = [...fromSquare.classList].find(cls => cls.includes('-'));
     const targetPieceClass = [...toSquare.classList].find(cls => cls.includes('-'));
 
-    const originalPieceClass = targetPieceClass;
-    const originalPieceColor = pieceColors[toRow][toCol];
-
-    toSquare.classList.add(pieceClass);
-    fromSquare.classList.remove(pieceClass);
-    pieceColors[toRow][toCol] = pieceColors[fromRow][fromCol];
-    pieceColors[fromRow][fromCol] = null;
+    movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol);    
 
     const kingInCheck = isKingInCheck(currentPlayer);
 
-    fromSquare.classList.add(pieceClass);
-    toSquare.classList.remove(pieceClass);
-    if (originalPieceClass) {
-        toSquare.classList.add(originalPieceClass);
-    }
-    pieceColors[fromRow][fromCol] = pieceColors[toRow][toCol];
-    pieceColors[toRow][toCol] = originalPieceColor;
+    movePiece(toSquare, fromSquare, toRow, toCol, fromRow, fromCol); 
+    toSquare.classList.add(targetPieceClass);
+
     return kingInCheck;
 }
 
