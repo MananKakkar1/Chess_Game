@@ -342,7 +342,7 @@ footer p {
     color: white;
 }
 
-.valid-move {
+.valid_move {
     background-image: none;
     outline: 2px solid rgba(0, 255, 0, 0.8); /* Add an outline instead of changing the background */
     z-index: 1; /* Ensure it appears above the piece */

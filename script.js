@@ -400,15 +400,18 @@ function highlightValidMoves(fromRow, fromCol, pieceClass) {
             const targetPieceClass = targetSquare ? [...targetSquare.classList].find(cls => cls.includes('-')) : null;
 
             if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
-                targetSquare.classList.add('valid-move');
+                // Make sure that the target square is not occupied by a piece of the same color
+                if (pieceColors[toRow][toCol] !== pieceColors[fromRow][fromCol]) {
+                    targetSquare.classList.add('valid_move');
+                }
             }
         }
     }
 }
 
 function clearHighlights() {
-    const highlightedSquares = document.querySelectorAll('.valid-move');
-    highlightedSquares.forEach(square => square.classList.remove('valid-move'));
+    const highlightedSquares = document.querySelectorAll('.valid_move');
+    highlightedSquares.forEach(square => square.classList.remove('valid_move'));
 }
 
 generateChessboard();
