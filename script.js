@@ -31,6 +31,60 @@ let pieceColors = initialColors.map(row => row.slice());
 let selectedSquare = null;
 let currentPlayer = 'white';
 
+function botMove() {
+    const difficulty = document.getElementById('bot-difficulty').value;
+
+    if (difficulty === 'easy') {
+        makeRandomMove();
+    } else if (difficulty === 'medium') {
+        makeGreedyMove();
+    } else if (difficulty === 'hard') {
+        makeMinimaxMove();
+    }
+
+    currentPlayer = 'white'; // Switch back to the player
+    updateTurnIndicator();
+}
+
+function makeRandomMove() {
+    const validMoves = getAllValidMoves('black');
+    if (validMoves.length > 0) {
+        const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+        executeMove(randomMove);
+    }
+}
+
+function getAllValidMoves(playerColor) {
+    const moves = [];
+    for (let fromRow = 0; fromRow < 8; fromRow++) {
+        for (let fromCol = 0; fromCol < 8; fromCol++) {
+            const square = document.querySelector(`.chessboard div[data-row="${fromRow}"][data-col="${fromCol}"]`);
+            const piece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
+            const pieceColor = pieceColors[fromRow][fromCol];
+
+            if (piece && pieceColor === playerColor) {
+                for (let toRow = 0; toRow < 8; toRow++) {
+                    for (let toCol = 0; toCol < 8; toCol++) {
+                        const targetSquare = document.querySelector(`.chessboard div[data-row="${toRow}"][data-col="${toCol}"]`);
+                        const targetPieceClass = targetSquare ? [...targetSquare.classList].find(cls => cls.includes('-')) : null;
+
+                        if (isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
+                            moves.push({ fromRow, fromCol, toRow, toCol });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return moves;
+}
+
+function executeMove(move) {
+    const fromSquare = document.querySelector(`.chessboard div[data-row="${move.fromRow}"][data-col="${move.fromCol}"]`);
+    const toSquare = document.querySelector(`.chessboard div[data-row="${move.toRow}"][data-col="${move.toCol}"]`);
+    movePiece(fromSquare, toSquare, move.fromRow, move.fromCol, move.toRow, move.toCol);
+}
+
 function generateChessboard() {
     chessboard.innerHTML = ''; 
     for (let row = 0; row < 8; row++) {
@@ -85,11 +139,12 @@ function handleSquareClick(square) {
         const toCol = parseInt(square.dataset.col);
 
         let target = boardState[toRow][toCol];
-        let targetColor = pieceColors[toRow][toCol];
         const pieceClass = [...selectedSquare.classList].find(cls => cls.includes('-'));
         const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
+        let targetColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
+        let pieceColor = pieceClass && pieceClass.startsWith('white') ? 'white' : 'black';
 
-        if (pieceColors[toRow][toCol] === pieceColors[fromRow][fromCol]) {
+        if (targetColor === pieceColor) {
             selectedSquare.classList.remove('selected');
             selectedSquare = null;
             // alert("You cannot capture your own piece!");
@@ -450,5 +505,91 @@ function getKing(playerColor) {
     }
     return { row: kingRow, col: kingCol };
 }
-generateChessboard();
+
+function handleBotSquareClick(square) {
+    if (selectedSquare) {
+        const fromRow = parseInt(selectedSquare.dataset.row);
+        const fromCol = parseInt(selectedSquare.dataset.col);
+        const toRow = parseInt(square.dataset.row);
+        const toCol = parseInt(square.dataset.col);
+
+        const pieceClass = [...selectedSquare.classList].find(cls => cls.includes('-'));
+        const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
+        const pieceColor = pieceClass && pieceClass.startsWith('white') ? 'white' : 'black';
+
+        if (pieceColor !== currentPlayer) {
+            alert(`It's ${currentPlayer}'s turn!`);
+            selectedSquare.classList.remove('selected');
+            selectedSquare = null;
+            return;
+        }
+
+        if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
+            movePiece(selectedSquare, square, fromRow, fromCol, toRow, toCol);
+
+            if (isKingInCheck(currentPlayer)) {
+                movePiece(square, selectedSquare, toRow, toCol, fromRow, fromCol);
+                square.classList.add(targetPieceClass);
+                alert("Invalid move: Your king is in check!");
+                selectedSquare.classList.remove('selected');
+                selectedSquare = null;
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
+            updateTurnIndicator();
+
+            if (currentPlayer === 'black') {
+                setTimeout(botMove, 500); // Call botMove after a short delay
+            }
+
+            if (isKingInCheck(currentPlayer)) {
+                if (isCheckmate(currentPlayer)) {
+                    alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins! Checkmate!`);
+                    showGameOverOverlay(currentPlayer === 'white' ? 'Black' : 'White');
+                    return;
+                } else {
+                    alert(`${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} King is in check!`);
+                }
+            }
+        }
+
+        selectedSquare.classList.remove('selected');
+        selectedSquare = null;
+        return;
+    } else if ([...square.classList].some(cls => cls.includes('-'))) {
+        const row = parseInt(square.dataset.row);
+        const col = parseInt(square.dataset.col);
+
+        const pieceClass = [...square.classList].find(cls => cls.includes('-'));
+        const pieceColor = pieceClass && pieceClass.startsWith('white') ? 'white' : 'black';
+
+        if (pieceColor !== currentPlayer) {
+            alert(`It's ${currentPlayer}'s turn!`);
+            return;
+        }
+
+        selectedSquare = square;
+        square.classList.add('selected');
+        return;
+    }
+}
+
+function enableBotMode() {
+    const squares = document.querySelectorAll('.chessboard div');
+    squares.forEach(square => {
+        square.removeEventListener('click', handleSquareClick);
+        square.addEventListener('click', () => handleBotSquareClick(square));
+    });
+}
+
+function initializeGame() {
+    const urlParams = new URLSearchParams(window.location.search);
+    generateChessboard();
+    if (urlParams.get('mode') === 'bot') {
+        enableBotMode();
+    }
+}
+
+initializeGame();
 document.querySelector('#reset-button').addEventListener('click', resetBoard);
