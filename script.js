@@ -95,14 +95,14 @@ function handleSquareClick(square) {
             // alert("You cannot capture your own piece!");
             return;
         }
-        console.log(`Moving ${pieceClass} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
-        console.log(`Target piece: ${targetPieceClass}, Target color: ${targetColor}`);
-        console.log(`Current player: ${currentPlayer}`);
-        console.log(`Piece color: ${pieceColors[fromRow][fromCol]}`);
-        console.log(`Is Piece able to move? ` + isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass));
-        console.log(`Is Path blocked? ` + isPathBlocked(fromRow, fromCol, toRow, toCol));
-        console.log(`Is King in check? ` + isKingInCheck(currentPlayer));
-        console.log(`Is Checkmate? ` + isCheckmate(currentPlayer));
+        // console.log(`Moving ${pieceClass} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
+        // console.log(`Target piece: ${targetPieceClass}, Target color: ${targetColor}`);
+        // console.log(`Current player: ${currentPlayer}`);
+        // console.log(`Piece color: ${pieceColors[fromRow][fromCol]}`);
+        // console.log(`Is Piece able to move? ` + isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass));
+        // console.log(`Is Path blocked? ` + isPathBlocked(fromRow, fromCol, toRow, toCol));
+        // console.log(`Is King in check? ` + isKingInCheck(currentPlayer));
+        // console.log(`Is Checkmate? ` + isCheckmate(currentPlayer));
         if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
             const originalPiece = boardState[toRow][toCol];
             const originalColor = pieceColors[toRow][toCol];
@@ -317,7 +317,7 @@ function isCheckmate(playerColor) {
                 if (targetColor !== playerColor && isValidMove(targetPieceClass, kingRow, kingCol, toRow, toCol, kingClass)) {
                     kingInCheck = simulateMove(kingRow, kingCol, toRow, toCol);
                     if (!kingInCheck) {
-                        console.log(`King can move to (${toRow}, ${toCol}) without being in check`);
+                        // console.log(`King can move to (${toRow}, ${toCol}) without being in check`);
                         return false; 
                     }
                 }
@@ -338,7 +338,7 @@ function isCheckmate(playerColor) {
                         if (targetColor === playerColor && isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
                             kingInCheck = simulateMove(fromRow, fromCol, toRow, toCol);
                             if (!kingInCheck) {
-                                console.log(`${piece} can move from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol}) without putting the ${playerColor} king in check`);
+                                // console.log(`${piece} can move from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol}) without putting the ${playerColor} king in check`);
                                 return false; 
                             }
                         }
