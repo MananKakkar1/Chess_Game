@@ -168,7 +168,7 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
             if (rowDiff === 1 && colDiff === 0 && !boardState[toRow][toCol]) {
                 return true;
             }
-            if (rowDiff === 1 && colDiff === 1 && targetPiece && pieceColors[toRow][toCol] === 'white') {
+            if (rowDiff === 1 && colDiff === 1 && targetPieceClass && pieceColors[toRow][toCol] === 'white') {
                 return true;
             }
             return false;
@@ -293,7 +293,7 @@ function isCheckmate(playerColor) {
                 const targetPiece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
                 const targetColor = pieceColors[toRow][toCol];
 
-                if (targetColor !== playerColor && isValidMove('♔', kingRow, kingCol, toRow, toCol, targetPiece)) {
+                if (targetColor !== playerColor && isValidMove('white-king', kingRow, kingCol, toRow, toCol, targetPiece)) {
                     simulateMove(kingRow, kingCol, toRow, toCol);
                     if (!kingInCheck) {
                         return false; 
