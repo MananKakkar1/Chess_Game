@@ -121,6 +121,7 @@ function handleSquareClick(square) {
             if (isKingInCheck(currentPlayer)) {
                 if (isCheckmate(currentPlayer)) {
                     alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins! Checkmate!`);
+                    showGameOverOverlay(currentPlayer === 'white' ? 'Black' : 'White');
                     return;
                 } else {
                     alert(`${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} King is in check!`);
@@ -145,6 +146,13 @@ function handleSquareClick(square) {
         return;
     }
     // console.log('Something went wrong!');
+}
+
+function showGameOverOverlay(winner) {
+    const overlay = document.getElementById('game-over-overlay');
+    const winnerLabel = document.getElementById('winner-label');
+    winnerLabel.textContent = `${winner} wins!`;
+    overlay.classList.remove('hidden');
 }
 
 function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass) {
@@ -202,7 +210,10 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
 
         case 'white-king':
         case 'black-king':
-            return Math.abs(rowDiff) <= 1 && colDiff <= 1;
+            if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
+                console.log('Row/Col Diff:', Math.abs(rowDiff), Math.abs(colDiff));
+                return Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1;
+            }
 
         default:
             return false;
@@ -212,13 +223,12 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
 function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
     const pieceClass = [...fromSquare.classList].find(cls => cls.includes('-'));
     const targetPieceClass = [...toSquare.classList].find(cls => cls.includes('-'));
-
-    if (targetPieceClass) {
+    let playerColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
+    if (targetPieceClass && !isKingInCheck(playerColor)) {
         toSquare.classList.remove(targetPieceClass);
         const capturedPiece = document.createElement('div');
         capturedPiece.classList.add(targetPieceClass);
-        
-        if (pieceColors[toRow][toCol] === 'white') {
+        if (playerColor === 'white') {
             capturedWhitePiecesContainer.appendChild(capturedPiece);
         } else {
             capturedBlackPiecesContainer.appendChild(capturedPiece);
@@ -247,6 +257,11 @@ function resetBoard() {
 
     updateTurnIndicator();
     generateChessboard();
+
+    const overlay = document.getElementById('game-over-overlay');
+    overlay.classList.add('hidden');
+    const winnerLabel = document.getElementById('winner-label');
+    winnerLabel.textContent = '';
 }
 
 function isKingInCheck(playerColor) { 
@@ -304,14 +319,24 @@ function isCheckmate(playerColor) {
         }
     }
     let kingInCheck;
+    console.log(`King position: (${kingRow}, ${kingCol})`);
     for (let toRow = kingRow - 1; toRow <= kingRow + 1; toRow++) {
         for (let toCol = kingCol - 1; toCol <= kingCol + 1; toCol++) {
             if (toRow >= 0 && toRow < 8 && toCol >= 0 && toCol < 8 && (toRow !== kingRow || toCol !== kingCol)) {
+                console.log(`Checking move to (${toRow}, ${toCol})`);
                 const square = document.querySelector(`.chessboard div[data-row="${toRow}"][data-col="${toCol}"]`);
                 const targetPieceClass = square ? [...square.classList].find(cls => cls.includes('-')) : null;
                 const targetColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
-                if (targetColor !== playerColor && isValidMove(targetPieceClass, kingRow, kingCol, toRow, toCol, kingClass)) {
+                // console.log(isValidMove(kingClass, kingRow, kingCol, toRow, toCol, targetPieceClass));
+                // console.log(isValidMove(targetPieceClass, kingRow, kingCol, toRow, toCol, kingClass));
+                // console.log(`Is valid move: ${isValidMove(kingClass, kingRow, kingCol, toRow, toCol, targetPieceClass)}`);
+                // console.log(`Color Check: ${targetColor !== playerColor}`);
+                // console.log(`Target Piece Class: ${targetPieceClass}`);
+                // console.log(`Target Color: ${targetColor}`);
+                // console.log(`Player Color: ${playerColor}`);
+                if ((targetColor !== playerColor || targetPieceClass === undefined) && isValidMove(kingClass, kingRow, kingCol, toRow, toCol, targetPieceClass)) {
                     kingInCheck = simulateMove(kingRow, kingCol, toRow, toCol);
+                    // console.log(`King ${kingInCheck} in simulation by ${targetPieceClass} at (${toRow}, ${toCol})`);
                     if (!kingInCheck) {
                         return false; 
                     }

@@ -29,7 +29,12 @@
                 <ul id="captured-white" class="captured-pieces-container"></ul> <!-- List for captured white pieces -->
             </div>  
         </div>
-        <div class="chessboard"></div>
+        <div class="chessboard-wrapper">
+            <div class="chessboard"></div>
+            <div id="game-over-overlay" class="hidden">
+                <p id="winner-label"></p>
+            </div>
+        </div>
         <div class="captured-black-pieces">
             <div>
                 <h3>Captured Black Pieces</h3>
