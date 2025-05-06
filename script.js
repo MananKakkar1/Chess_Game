@@ -104,16 +104,14 @@ function handleSquareClick(square) {
         // console.log(`Is King in check? ` + isKingInCheck(currentPlayer));
         // console.log(`Is Checkmate? ` + isCheckmate(currentPlayer));
         if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
-            const originalPiece = boardState[toRow][toCol];
-            const originalColor = pieceColors[toRow][toCol];
-
             movePiece(selectedSquare, square, fromRow, fromCol, toRow, toCol);
-
             if (isKingInCheck(currentPlayer)) {
                 movePiece(square, selectedSquare, toRow, toCol, fromRow, fromCol);
+                square.classList.add(targetPieceClass);
                 alert("Invalid move: Your king is in check!");
                 selectedSquare.classList.remove('selected');
                 selectedSquare = null;
+                capturedWhitePiecesContainer.remove(targetPieceClass)
                 return;
             }
             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
