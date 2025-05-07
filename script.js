@@ -32,8 +32,8 @@ let selectedSquare = null;
 let currentPlayer = 'white';
 
 function botMove() {
+    console.log("Bot's turn to move!");
     const difficulty = document.getElementById('bot-difficulty').value;
-
     if (difficulty === 'easy') {
         makeRandomMove();
     } else if (difficulty === 'medium') {
@@ -41,18 +41,21 @@ function botMove() {
     } else if (difficulty === 'hard') {
         makeMinimaxMove();
     }
-
-    currentPlayer = 'white'; // Switch back to the player
-    updateTurnIndicator();
 }
 
 function makeRandomMove() {
     const validMoves = getAllValidMoves('black');
+    console.log(validMoves.length)
     if (validMoves.length > 0) {
-        const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
-        executeMove(randomMove);
+        const move = validMoves[Math.floor(Math.random() * validMoves.length)];
+        executeMove(move);
+        currentPlayer = 'white'; // Switch back to the player
+        updateTurnIndicator();
     }
 }
+
+function makeGreedyMove() {}
+function makeMinimaxMove() {}
 
 function getAllValidMoves(playerColor) {
     const moves = [];
@@ -60,7 +63,7 @@ function getAllValidMoves(playerColor) {
         for (let fromCol = 0; fromCol < 8; fromCol++) {
             const square = document.querySelector(`.chessboard div[data-row="${fromRow}"][data-col="${fromCol}"]`);
             const piece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
-            const pieceColor = pieceColors[fromRow][fromCol];
+            const pieceColor = piece && piece.startsWith('white') ? 'white' : (piece && piece.startsWith('black') ? 'black' : null);
 
             if (piece && pieceColor === playerColor) {
                 for (let toRow = 0; toRow < 8; toRow++) {
@@ -68,8 +71,43 @@ function getAllValidMoves(playerColor) {
                         const targetSquare = document.querySelector(`.chessboard div[data-row="${toRow}"][data-col="${toCol}"]`);
                         const targetPieceClass = targetSquare ? [...targetSquare.classList].find(cls => cls.includes('-')) : null;
 
-                        if (isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
+                        if (isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPieceClass) && !isPathBlocked(fromRow, fromCol, toRow, toCol) && !isKingInCheck('black') && (fromRow !== toRow || fromCol !== toCol)) {
+                            console.log(`Valid move for ${piece} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
                             moves.push({ fromRow, fromCol, toRow, toCol });
+                        } else if (isKingInCheck('black')) {
+                            let kingRow, kingCol;
+                            let kingClass;
+                            for (let row = 0; row < 8; row++) {
+                                for (let col = 0; col < 8; col++) {
+                                    const square = document.querySelector(`.chessboard div[data-row="${row}"][data-col="${col}"]`);
+                                    const piece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
+                                    if (piece === `${playerColor}-king`) {
+                                        kingRow = row;
+                                        kingCol = col;
+                                        kingClass = piece;
+                                        break;
+                                    }
+                                }
+                            }
+                            let kingInCheck;
+                            console.log(`King position: (${kingRow}, ${kingCol})`);
+                            for (let kingToRow = kingRow - 1; kingToRow <= kingRow + 1; kingToRow++) {
+                                for (let kingToCol = kingCol - 1; kingToCol <= kingCol + 1; kingToCol++) {
+                                    if (kingToRow >= 0 && kingToRow < 8 && kingToCol >= 0 && kingToCol < 8 && (kingToRow !== kingRow || kingToCol !== kingCol)) {
+                                        console.log(`Checking move to (${kingToRow}, ${kingToCol})`);
+                                        const square = document.querySelector(`.chessboard div[data-row="${kingToRow}"][data-col="${kingToCol}"]`);
+                                        const targetPieceClass = square ? [...square.classList].find(cls => cls.includes('-')) : null;
+                                        const targetColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
+                                        if ((targetColor !== playerColor || targetPieceClass === undefined) && isValidMove(kingClass, kingRow, kingCol, kingToRow, kingToCol, targetPieceClass)) {
+                                            kingInCheck = simulateMove(kingRow, kingCol, kingToRow, kingToCol);
+                                            // console.log(`King ${kingInCheck} in simulation by ${targetPieceClass} at (${toRow}, ${toCol})`);
+                                            if (!kingInCheck) {
+                                                moves.push({ kingRow, kingCol, kingToRow, kingToCol });
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -138,7 +176,6 @@ function handleSquareClick(square) {
         const toRow = parseInt(square.dataset.row);
         const toCol = parseInt(square.dataset.col);
 
-        let target = boardState[toRow][toCol];
         const pieceClass = [...selectedSquare.classList].find(cls => cls.includes('-'));
         const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
         let targetColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
@@ -209,29 +246,40 @@ function showGameOverOverlay(winner) {
 }
 
 function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass) {
-    const rowDiff = toRow - fromRow;
+    const rowDiff = Math.abs(toRow - fromRow);
     const colDiff = Math.abs(toCol - fromCol);
+
+    // Prevent moving to a spot occupied by a like-colored piece
+    if (targetPieceClass && pieceClass.startsWith('white') && targetPieceClass.startsWith('white')) {
+        return false;
+    }
+    if (targetPieceClass && pieceClass.startsWith('black') && targetPieceClass.startsWith('black')) {
+        return false;
+    }
+
     switch (pieceClass) {
         case 'white-pawn':
-            if (fromRow === 6 && rowDiff === -2 && colDiff === 0 && !boardState[toRow][toCol] && !boardState[toRow + 1][toCol]) {
+            if (toRow >= fromRow) return false; // White pawns can only move up
+            if (fromRow === 6 && rowDiff === 2 && colDiff === 0 && !targetPieceClass) {
                 return true;
             }
-            if (rowDiff === -1 && colDiff === 0 && !boardState[toRow][toCol]) {
+            if (rowDiff === 1 && colDiff === 0 && !targetPieceClass) {
                 return true;
             }
-            if (rowDiff === -1 && colDiff === 1 && targetPieceClass && pieceColors[toRow][toCol] === 'black') {
+            if (rowDiff === 1 && colDiff === 1 && targetPieceClass && targetPieceClass.startsWith('black')) {
                 return true;
             }
             return false;
 
         case 'black-pawn':
-            if (fromRow === 1 && rowDiff === 2 && colDiff === 0 && !boardState[toRow][toCol] && !boardState[toRow - 1][toCol]) {
+            if (toRow <= fromRow) return false; // Black pawns can only move down
+            if (fromRow === 1 && rowDiff === 2 && colDiff === 0 && !targetPieceClass) {
                 return true;
             }
-            if (rowDiff === 1 && colDiff === 0 && !boardState[toRow][toCol]) {
+            if (rowDiff === 1 && colDiff === 0 && !targetPieceClass) {
                 return true;
             }
-            if (rowDiff === 1 && colDiff === 1 && targetPieceClass && pieceColors[toRow][toCol] === 'white') {
+            if (rowDiff === 1 && colDiff === 1 && targetPieceClass && targetPieceClass.startsWith('white')) {
                 return true;
             }
             return false;
@@ -245,28 +293,28 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
 
         case 'white-knight':
         case 'black-knight':
-            return (Math.abs(rowDiff) === 2 && colDiff === 1) || (Math.abs(rowDiff) === 1 && colDiff === 2);
+            return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
 
         case 'white-bishop':
         case 'black-bishop':
             if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
-                return Math.abs(rowDiff) === colDiff;
+                return rowDiff === colDiff;
             }
             return false;
 
         case 'white-queen':
         case 'black-queen':
             if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
-                return Math.abs(rowDiff) === colDiff || rowDiff === 0 || colDiff === 0;
+                return rowDiff === colDiff || rowDiff === 0 || colDiff === 0;
             }
             return false;
 
         case 'white-king':
         case 'black-king':
             if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
-                console.log('Row/Col Diff:', Math.abs(rowDiff), Math.abs(colDiff));
-                return Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1;
+                return rowDiff <= 1 && colDiff <= 1;
             }
+            return false;
 
         default:
             return false;
@@ -309,7 +357,15 @@ function resetBoard() {
     capturedWhitePiecesContainer.innerHTML = '';
 
     updateTurnIndicator();
-    generateChessboard();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log(urlParams.get('mode'));
+    if (urlParams.get('mode') === 'bot') {
+        console.log('Bot mode enabled');
+        generateBotChessboard();
+    } else {
+        generateChessboard();
+    }
 
     const overlay = document.getElementById('game-over-overlay');
     overlay.classList.add('hidden');
@@ -517,14 +573,15 @@ function handleBotSquareClick(square) {
         const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
         const pieceColor = pieceClass && pieceClass.startsWith('white') ? 'white' : 'black';
 
+        // Prevent moving pieces that do not belong to the current player
         if (pieceColor !== currentPlayer) {
-            alert(`It's ${currentPlayer}'s turn!`);
+            alert(`It's ${currentPlayer}'s turn! You cannot move ${pieceColor} pieces.`);
             selectedSquare.classList.remove('selected');
             selectedSquare = null;
             return;
         }
 
-        if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
+        if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass) && currentPlayer === 'white') {
             movePiece(selectedSquare, square, fromRow, fromCol, toRow, toCol);
 
             if (isKingInCheck(currentPlayer)) {
@@ -539,8 +596,10 @@ function handleBotSquareClick(square) {
             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
             updateTurnIndicator();
 
+            selectedSquare = null; // Reset selectedSquare after a valid move
+
             if (currentPlayer === 'black') {
-                setTimeout(botMove, 500); // Call botMove after a short delay
+                setTimeout(botMove, 500); // Bot moves after a short delay
             }
 
             if (isKingInCheck(currentPlayer)) {
@@ -553,9 +612,10 @@ function handleBotSquareClick(square) {
                 }
             }
         }
-
-        selectedSquare.classList.remove('selected');
-        selectedSquare = null;
+        if (selectedSquare !== null) {
+            selectedSquare.classList.remove('selected');
+            selectedSquare = null; // Reset selectedSquare if the move is invalid
+        }
         return;
     } else if ([...square.classList].some(cls => cls.includes('-'))) {
         const row = parseInt(square.dataset.row);
@@ -569,7 +629,7 @@ function handleBotSquareClick(square) {
             return;
         }
 
-        selectedSquare = square;
+        selectedSquare = square; // Update selectedSquare when a new square is clicked
         square.classList.add('selected');
         return;
     }
@@ -585,9 +645,40 @@ function enableBotMode() {
 
 function initializeGame() {
     const urlParams = new URLSearchParams(window.location.search);
-    generateChessboard();
+    console.log(urlParams.get('mode'));
     if (urlParams.get('mode') === 'bot') {
-        enableBotMode();
+        console.log('Bot mode enabled');
+        generateBotChessboard();
+    } else {
+        generateChessboard();
+    }
+}
+
+function generateBotChessboard() {
+    chessboard.innerHTML = ''; 
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const square = document.createElement('div');
+            square.dataset.row = row;
+            square.dataset.col = col;
+
+            if ((row + col) % 2 === 0) {
+                square.classList.add('white');
+            } else {
+                square.classList.add('black');
+            }
+
+            const piece = boardState[row][col];
+            if (piece) {
+                const pieceClass = getPieceClass(piece);
+                if (pieceClass) {
+                    square.classList.add(pieceClass);
+                }
+            }
+
+            square.addEventListener('click', () => handleBotSquareClick(square));
+            chessboard.appendChild(square);
+        }
     }
 }
 
