@@ -246,6 +246,50 @@ footer p {
     max-width: 800px;
     /* background-color: #8B4513; Poop color */
 }
+
+/* Game Container stuff */
+
+.game-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px; /* Space between the chessboard and the turn history */
+    margin: 20px auto;
+    max-width: 1000px;
+}
+
+.turn-history {
+    width: 200px;
+    max-height: 400px;
+    overflow-y: auto; /* Add scroll if the history exceeds the box height */
+    background-color: #1c1c1c;
+    color: white;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.turn-history h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #00dff7;
+}
+
+#turn-history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+#turn-history-list li {
+    margin-bottom: 5px;
+    color: #ccc;
+}
+
 .chessboard .white {
     background-color: #F5F5DC; 
 }

@@ -30,6 +30,7 @@ let boardState = initialBoard.map(row => row.slice());
 let pieceColors = initialColors.map(row => row.slice());
 let selectedSquare = null;
 let currentPlayer = 'white';
+let turnHistory = [];
 
 function generateChessboard() {
     chessboard.innerHTML = ''; 
@@ -102,9 +103,10 @@ function handleSquareClick(square) {
             const originalPiece = boardState[toRow][toCol];
             const originalColor = pieceColors[toRow][toCol];
 
-            movePiece(selectedSquare, square, fromRow, fromCol, toRow, toCol);
-
-            if (isKingInCheck(currentPlayer)) {
+            let captured = movePiece(selectedSquare, square, fromRow, fromCol, toRow, toCol);
+            let kingInCheck = isKingInCheck(currentPlayer);
+            let kingInCheckmate = isCheckmate(currentPlayer);
+            if (kingInCheck) {
                 movePiece(square, selectedSquare, toRow, toCol, fromRow, fromCol);
                 boardState[toRow][toCol] = originalPiece;
                 pieceColors[toRow][toCol] = originalColor;
@@ -114,11 +116,13 @@ function handleSquareClick(square) {
                 selectedSquare = null;
                 return;
             }
+
             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
             updateTurnIndicator();
-
-            if (isKingInCheck(currentPlayer)) {
-                if (isCheckmate(currentPlayer)) {
+            recordTurn(toRow, toCol, pieceClass, isKingInCheck(currentPlayer === 'white' ? 'black' : 'white'), 
+            isCheckmate(currentPlayer === 'white' ? 'black' : 'white'), captured);
+            if (kingInCheck) {
+                if (kingInCheckmate) {
                     alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins! Checkmate!`);
                     return;
                 } else {
@@ -144,6 +148,38 @@ function handleSquareClick(square) {
         highlightValidMoves(row, col, [...square.classList].find(cls => cls.includes('-')));
     }
 }
+
+function recordTurn(toRow, toCol, pieceClass, checkStatus, checkmateStatus, pieceCaptured) {
+    const rowMap = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    const toRowLetter = rowMap[toRow];
+    let pieceType = pieceClass.split('-')[1];
+    switch (pieceType){
+        case 'pawn': pieceType = ''; break;
+        case 'rook': pieceType = 'R'; break;
+        case 'knight': pieceType = 'N'; break;
+        case 'bishop': pieceType = 'B'; break;
+        case 'queen': pieceType = 'Q'; break;
+        case 'king': pieceType = 'K'; break;
+        default: pieceType = ''; break;
+    }
+    let chk = '';
+    if (pieceCaptured) {
+        pieceType += 'x';
+    }
+    if (checkmateStatus) {
+        chk = '#';
+    }else if (checkStatus){
+        chk = '+';
+    }
+    const turnRecord = `${pieceType}${toRowLetter}${8-toCol}${chk}`;
+    turnHistory.push(turnRecord);
+
+    const turnHistoryList = document.getElementById('turn-history-list');
+    const turnItem = document.createElement('li');
+    turnItem.textContent = `${turnRecord}`;
+    turnHistoryList.appendChild(turnItem);
+}
+
 
 function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass) {
     const rowDiff = toRow - fromRow;
@@ -204,7 +240,7 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
 function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
     const pieceClass = [...fromSquare.classList].find(cls => cls.includes('-'));
     const targetPieceClass = [...toSquare.classList].find(cls => cls.includes('-'));
-
+    let captured = false;
     boardState[toRow][toCol] = boardState[fromRow][fromCol];
     boardState[fromRow][fromCol] = null;
 
@@ -224,12 +260,15 @@ function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
             // console.log("Captured piece color2:", pieceColors[toRow][toCol]);
             capturedBlackPiecesContainer.appendChild(capturedPiece);
         }
+        captured = true;
     }
 
     // Move the piece to the target square
     toSquare.classList.add(pieceClass);
     fromSquare.classList.remove(pieceClass);
     fromSquare.classList.remove('selected');
+    // return whether a piece was captured
+    return captured;
 }
 
 function updateTurnIndicator() {
@@ -305,7 +344,7 @@ function isCheckmate(playerColor) {
 
     for (let fromRow = 0; fromRow < 8; fromRow++) {
         for (let fromCol = 0; fromCol < 8; fromCol++) {
-            const square = document.querySelector(`.chessboard div[data-row="${row}"][data-col="${col}"]`);
+            const square = document.querySelector(`.chessboard div[data-row="${fromRow}"][data-col="${fromCol}"]`);
             const piece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
             const pieceColor = pieceColors[fromRow][fromCol];
 
@@ -316,7 +355,7 @@ function isCheckmate(playerColor) {
                         const targetColor = pieceColors[toRow][toCol];
 
                         if (targetColor !== playerColor && isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPiece)) {
-                            simulateMove(fromRow, fromCol, toRow, toCol);
+                            let kingInCheck = simulateMove(fromRow, fromCol, toRow, toCol);
                             if (!kingInCheck) {
                                 return false; 
                             }
@@ -374,7 +413,7 @@ function simulateMove(fromRow, fromCol, toRow, toCol) {
     pieceColors[toRow][toCol] = originalPieceColor;
 }
 
-function getKing(color) {
+function getKing(playerColor) {
     let kingRow, kingCol;
     for (let row = 0; row < 8; row++) {
         for (let col = 0; col < 8; col++) {
@@ -398,10 +437,11 @@ function highlightValidMoves(fromRow, fromCol, pieceClass) {
         for (let toCol = 0; toCol < 8; toCol++) {
             const targetSquare = document.querySelector(`.chessboard div[data-row="${toRow}"][data-col="${toCol}"]`);
             const targetPieceClass = targetSquare ? [...targetSquare.classList].find(cls => cls.includes('-')) : null;
-
+            const color = pieceClass ? pieceClass.split('-')[0] : null;
+            const targetColor = targetPieceClass ? targetPieceClass.split('-')[0] : null;
             if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
                 // Make sure that the target square is not occupied by a piece of the same color
-                if (pieceColors[toRow][toCol] !== pieceColors[fromRow][fromCol]) {
+                if (color !== targetColor) {
                     targetSquare.classList.add('valid_move');
                 }
             }
