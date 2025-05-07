@@ -84,8 +84,6 @@ function handleSquareClick(square) {
         const toRow = parseInt(square.dataset.row);
         const toCol = parseInt(square.dataset.col);
 
-        let target = boardState[toRow][toCol];
-        let targetColor = pieceColors[toRow][toCol];
         const pieceClass = [...selectedSquare.classList].find(cls => cls.includes('-'));
         const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
 
@@ -131,10 +129,8 @@ function handleSquareClick(square) {
         selectedSquare = null;
         return;
     } else if ([...square.classList].some(cls => cls.includes('-'))) {
-        const row = parseInt(square.dataset.row);
-        const col = parseInt(square.dataset.col);
-
-        if (pieceColors[row][col] !== currentPlayer) {
+        const pieceClass = [...square.classList].find(cls => cls.includes('-'));
+        if (!pieceClass.startsWith(currentPlayer)) {
             alert(`It's ${currentPlayer}'s turn!`);
             return;
         }
@@ -236,8 +232,6 @@ function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
     toSquare.classList.add(pieceClass);
     fromSquare.classList.remove(pieceClass);
     fromSquare.classList.remove('selected');
-    pieceColors[toRow][toCol] = pieceColors[fromRow][fromCol];
-    pieceColors[fromRow][fromCol] = null;
 }
 
 function updateTurnIndicator() {
