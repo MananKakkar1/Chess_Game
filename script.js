@@ -154,29 +154,29 @@ function showGameOverOverlay(winner) {
 }
 
 function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass) {
-    const rowDiff = toRow - fromRow;
+    const rowDiff = Math.abs(toRow - fromRow);
     const colDiff = Math.abs(toCol - fromCol);
     switch (pieceClass) {
         case 'white-pawn':
-            if (fromRow === 6 && rowDiff === -2 && colDiff === 0 && !boardState[toRow][toCol] && !boardState[toRow + 1][toCol]) {
+            if (fromRow === 6 && rowDiff === 2 && colDiff === 0 && !targetPieceClass) {
                 return true;
             }
-            if (rowDiff === -1 && colDiff === 0 && !boardState[toRow][toCol]) {
+            if (rowDiff === 1 && colDiff === 0 && !targetPieceClass) {
                 return true;
             }
-            if (rowDiff === -1 && colDiff === 1 && targetPieceClass && pieceColors[toRow][toCol] === 'black') {
+            if (rowDiff === 1 && colDiff === 1 && targetPieceClass && targetPieceClass.startsWith('black')) {
                 return true;
             }
             return false;
 
         case 'black-pawn':
-            if (fromRow === 1 && rowDiff === 2 && colDiff === 0 && !boardState[toRow][toCol] && !boardState[toRow - 1][toCol]) {
+            if (fromRow === 1 && rowDiff === 2 && colDiff === 0 && !targetPieceClass) {
                 return true;
             }
-            if (rowDiff === 1 && colDiff === 0 && !boardState[toRow][toCol]) {
+            if (rowDiff === 1 && colDiff === 0 && !targetPieceClass) {
                 return true;
             }
-            if (rowDiff === 1 && colDiff === 1 && targetPieceClass && pieceColors[toRow][toCol] === 'white') {
+            if (rowDiff === 1 && colDiff === 1 && targetPieceClass && targetPieceClass.startsWith('white')) {
                 return true;
             }
             return false;
@@ -190,28 +190,28 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
 
         case 'white-knight':
         case 'black-knight':
-            return (Math.abs(rowDiff) === 2 && colDiff === 1) || (Math.abs(rowDiff) === 1 && colDiff === 2);
+            return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
 
         case 'white-bishop':
         case 'black-bishop':
             if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
-                return Math.abs(rowDiff) === colDiff;
+                return rowDiff === colDiff;
             }
             return false;
 
         case 'white-queen':
         case 'black-queen':
             if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
-                return Math.abs(rowDiff) === colDiff || rowDiff === 0 || colDiff === 0;
+                return rowDiff === colDiff || rowDiff === 0 || colDiff === 0;
             }
             return false;
 
         case 'white-king':
         case 'black-king':
             if (!isPathBlocked(fromRow, fromCol, toRow, toCol)) {
-                console.log('Row/Col Diff:', Math.abs(rowDiff), Math.abs(colDiff));
-                return Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1;
+                return rowDiff <= 1 && colDiff <= 1;
             }
+            return false;
 
         default:
             return false;
