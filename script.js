@@ -129,6 +129,8 @@ function handleSquareClick(square) {
         selectedSquare = null;
         return;
     } else if ([...square.classList].some(cls => cls.includes('-'))) {
+        const row = parseInt(square.dataset.row);
+        const col = parseInt(square.dataset.col);
         const pieceClass = [...square.classList].find(cls => cls.includes('-'));
         if (!pieceClass.startsWith(currentPlayer)) {
             alert(`It's ${currentPlayer}'s turn!`);
@@ -232,6 +234,8 @@ function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
     toSquare.classList.add(pieceClass);
     fromSquare.classList.remove(pieceClass);
     fromSquare.classList.remove('selected');
+    pieceColors[toRow][toCol] = pieceColors[fromRow][fromCol];
+    pieceColors[fromRow][fromCol] = null;
 }
 
 function updateTurnIndicator() {
