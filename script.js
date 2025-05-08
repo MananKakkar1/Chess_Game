@@ -45,7 +45,6 @@ function botMove() {
 
 function makeRandomMove() {
     let validMoves;
-
     // Check if the king is in check and fetch appropriate moves
     if (isKingInCheck('black')) {
         validMoves = getAllCheckValidMoves('black');
@@ -78,6 +77,7 @@ function makeMinimaxMove() {}
 
 function getAllValidMoves(playerColor) {
     const moves = [];
+    let kingInCheck;
     for (let fromRow = 0; fromRow < 8; fromRow++) {
         for (let fromCol = 0; fromCol < 8; fromCol++) {
             const square = document.querySelector(`.chessboard div[data-row="${fromRow}"][data-col="${fromCol}"]`);
@@ -92,7 +92,10 @@ function getAllValidMoves(playerColor) {
 
                         if (isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPieceClass) && !isPathBlocked(fromRow, fromCol, toRow, toCol) && !isKingInCheck('black') && (fromRow !== toRow || fromCol !== toCol)) {
                             console.log(`Valid move for ${piece} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
-                            moves.push({ fromRow, fromCol, toRow, toCol });
+                            kingInCheck = simulateMove(fromRow, fromCol, toRow, toCol);
+                            if (!kingInCheck) {
+                                moves.push({ fromRow, fromCol, toRow, toCol });
+                            }
                         }
                     }
                 }
