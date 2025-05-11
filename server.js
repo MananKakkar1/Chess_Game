@@ -60,19 +60,25 @@ io.on('connection', (socket) => {
 
 function initializeBoard() {
     return [
-        ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
-        ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
+        ['black-rook', 'black-knight', 'black-bishop', 'black-queen', 'black-king', 'black-bishop', 'black-knight', 'black-rook'],
+        ['black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn'],
         [null, null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null, null],
-        ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'],
-        ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖'],
+        ['white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn'],
+        ['white-rook', 'white-knight', 'white-bishop', 'white-queen', 'white-king', 'white-bishop', 'white-knight', 'white-rook'],
     ];
 }
 
 function validateMove(boardState, move, currentPlayer) {
-    // Add logic to validate the move based on the board state and current player
+    const { fromRow, fromCol, toRow, toCol } = move;
+    const piece = boardState[fromRow][fromCol];
+
+    if (!piece) return false; // No piece to move
+    if (!piece.startsWith(currentPlayer)) return false; // Not the current player's piece
+
+    // Add specific move validation logic here (e.g., pawn movement, rook movement)
     return true; // Placeholder
 }
 
