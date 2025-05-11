@@ -2,26 +2,15 @@ const chessboard = document.querySelector('.chessboard');
 const turnIndicator = document.querySelector('#turn-indicator');
 
 const initialBoard = [
-    ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
-    ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'],
-    ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖']
-];
-
-const initialColors = [
-    ['black', 'black', 'black', 'black', 'black', 'black', 'black', 'black'],
-    ['black', 'black', 'black', 'black', 'black', 'black', 'black', 'black'],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white'],
-    ['white', 'white', 'white', 'white', 'white', 'white', 'white', 'white']
-];
+        ['black-rook', 'black-knight', 'black-bishop', 'black-queen', 'black-king', 'black-bishop', 'black-knight', 'black-rook'],
+        ['black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn'],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+        ['white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn'],
+        ['white-rook', 'white-knight', 'white-bishop', 'white-queen', 'white-king', 'white-bishop', 'white-knight', 'white-rook'],
+    ];
 
 const capturedBlackPiecesContainer = document.getElementById('captured-black');
 const capturedWhitePiecesContainer = document.getElementById('captured-white');
@@ -44,36 +33,11 @@ function generateChessboard() {
             } else {
                 square.classList.add('black');
             }
-
-            const piece = boardState[row][col];
-            if (piece) {
-                const pieceClass = getPieceClass(piece);
-                if (pieceClass) {
-                    square.classList.add(pieceClass);
-                }
-            }
+            square.classList.add(pieceClass);
 
             square.addEventListener('click', () => handleSquareClick(square));
             chessboard.appendChild(square);
         }
-    }
-}
-
-function getPieceClass(piece) {
-    switch (piece) {
-        case '♙': return 'white-pawn';
-        case '♟': return 'black-pawn';
-        case '♖': return 'white-rook';
-        case '♜': return 'black-rook';
-        case '♘': return 'white-knight';
-        case '♞': return 'black-knight';
-        case '♗': return 'white-bishop';
-        case '♝': return 'black-bishop';
-        case '♕': return 'white-queen';
-        case '♛': return 'black-queen';
-        case '♔': return 'white-king';
-        case '♚': return 'black-king';
-        default: return null;
     }
 }
 
