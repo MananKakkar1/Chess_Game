@@ -310,12 +310,15 @@ footer p {
 .captured-pieces-container{
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     /* gap: 5px; */
     justify-content: flex-start;
     align-items: center;
     /* Overflow prevention */
     max-width: 100%;
-    overflow-x: auto;
+    height: auto;
+    overflow: hidden;
+    box-sizing: border
 }
 
 /* Apply the shared piece styles explicitly */

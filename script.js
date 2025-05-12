@@ -16,9 +16,12 @@ const capturedBlackPiecesContainer = document.getElementById('captured-black');
 const capturedWhitePiecesContainer = document.getElementById('captured-white');
 
 let boardState = initialBoard.map(row => row.slice());
-let pieceColors = initialColors.map(row => row.slice());
 let selectedSquare = null;
 let currentPlayer = 'white';
+
+// Define the square objects with the following properties in their classList: 
+// - square color (white or black) 0
+// - piece 1
 
 function generateChessboard() {
     chessboard.innerHTML = ''; 
@@ -33,12 +36,13 @@ function generateChessboard() {
             } else {
                 square.classList.add('black');
             }
-            square.classList.add(pieceClass);
-
+            // Add piece class if there is a piece in the intial board.
+            boardState[row][col] ? square.classList.add(boardState[row][col]) : null;
             square.addEventListener('click', () => handleSquareClick(square));
             chessboard.appendChild(square);
         }
     }
+    console.log('Chessboard generated');
 }
 
 function handleSquareClick(square) {
@@ -51,31 +55,29 @@ function handleSquareClick(square) {
         const pieceClass = [...selectedSquare.classList].find(cls => cls.includes('-'));
         const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
 
-        if (pieceColors[toRow][toCol] === pieceColors[fromRow][fromCol]) {
+        if (targetPieceClass && targetPieceClass.startsWith(currentPlayer)) {
             selectedSquare.classList.remove('selected');
             selectedSquare = null;
             // alert("You cannot capture your own piece!");
             return;
         }
-        // console.log(`Moving ${pieceClass} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
-        // console.log(`Target piece: ${targetPieceClass}, Target color: ${targetColor}`);
-        // console.log(`Current player: ${currentPlayer}`);
-        // console.log(`Piece color: ${pieceColors[fromRow][fromCol]}`);
-        // console.log(`Is Piece able to move? ` + isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass));
-        // console.log(`Is Path blocked? ` + isPathBlocked(fromRow, fromCol, toRow, toCol));
-        // console.log(`Is King in check? ` + isKingInCheck(currentPlayer));
-        // console.log(`Is Checkmate? ` + isCheckmate(currentPlayer));
+        console.log(`Moving ${pieceClass} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
+        console.log(`Target piece: ${targetPieceClass}, Target color: ${targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : (targetPieceClass && targetPieceClass.startsWith('black') ? 'black' : null)}`);
+        console.log(`Current player: ${currentPlayer}`);
+        console.log(`Piece color: ${pieceClass && pieceClass.startsWith('white') ? 'white' : (pieceClass && pieceClass.startsWith('black') ? 'black' : null)}`);
+        console.log(`Is Piece able to move? ` + isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass));
+        console.log(`Is Path blocked? ` + isPathBlocked(fromRow, fromCol, toRow, toCol));
+        console.log(`Is King in check? ` + isKingInCheck(currentPlayer));
+        console.log(`Is Checkmate? ` + isCheckmate(currentPlayer));
         if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
-            movePiece(selectedSquare, square, fromRow, fromCol, toRow, toCol);
-            if (isKingInCheck(currentPlayer)) {
-                movePiece(square, selectedSquare, toRow, toCol, fromRow, fromCol);
-                square.classList.add(targetPieceClass);
+            let kingCheck = simulateMove(fromRow, fromCol, toRow, toCol);
+            if (kingCheck) {
                 alert("Invalid move: Your king is in check!");
                 selectedSquare.classList.remove('selected');
                 selectedSquare = null;
-                capturedWhitePiecesContainer.remove(targetPieceClass)
                 return;
             }
+            movePiece(selectedSquare, square);
             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
             updateTurnIndicator();
             if (isKingInCheck(currentPlayer)) {
@@ -180,7 +182,7 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
     }
 }
 
-function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
+function movePiece(fromSquare, toSquare) {
     const pieceClass = [...fromSquare.classList].find(cls => cls.includes('-'));
     const targetPieceClass = [...toSquare.classList].find(cls => cls.includes('-'));
     let playerColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
@@ -198,8 +200,6 @@ function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
     toSquare.classList.add(pieceClass);
     fromSquare.classList.remove(pieceClass);
     fromSquare.classList.remove('selected');
-    pieceColors[toRow][toCol] = pieceColors[fromRow][fromCol];
-    pieceColors[fromRow][fromCol] = null;
 }
 
 function updateTurnIndicator() {
@@ -208,7 +208,6 @@ function updateTurnIndicator() {
 
 function resetBoard() {
     boardState = initialBoard.map(row => row.slice());
-    pieceColors = initialColors.map(row => row.slice());
     selectedSquare = null;
     currentPlayer = 'white';
 
@@ -296,7 +295,7 @@ function isCheckmate(playerColor) {
                 // console.log(`Player Color: ${playerColor}`);
                 if ((targetColor !== playerColor || targetPieceClass === undefined) && isValidMove(kingClass, kingRow, kingCol, toRow, toCol, targetPieceClass)) {
                     kingInCheck = simulateMove(kingRow, kingCol, toRow, toCol);
-                    // console.log(`King ${kingInCheck} in simulation by ${targetPieceClass} at (${toRow}, ${toCol})`);
+                    console.log(`King ${kingInCheck} in simulation by ${targetPieceClass} at (${toRow}, ${toCol})`);
                     if (!kingInCheck) {
                         return false; 
                     }
@@ -309,7 +308,7 @@ function isCheckmate(playerColor) {
         for (let fromCol = 0; fromCol < 8; fromCol++) {
             const square = document.querySelector(`.chessboard div[data-row="${fromRow}"][data-col="${fromCol}"]`);
             const piece = square ? [...square.classList].find(cls => cls.includes('-')) : null;
-            const pieceColor = pieceColors[fromRow][fromCol];
+            const pieceColor = piece && piece.startsWith('white') ? 'white' : (piece && piece.startsWith('black') ? 'black' : null);
             if (piece && pieceColor !== playerColor) {
                 for (let toRow = 0; toRow < 8; toRow++) {
                     for (let toCol = 0; toCol < 8; toCol++) {
@@ -384,13 +383,37 @@ function simulateMove(fromRow, fromCol, toRow, toCol) {
     const pieceClass = [...fromSquare.classList].find(cls => cls.includes('-'));
     const targetPieceClass = [...toSquare.classList].find(cls => cls.includes('-'));
 
-    movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol);    
+    movePiece(fromSquare, toSquare);    
 
     const kingInCheck = isKingInCheck(currentPlayer);
 
-    movePiece(toSquare, fromSquare, toRow, toCol, fromRow, fromCol); 
+    movePiece(toSquare, fromSquare); 
     toSquare.classList.add(targetPieceClass);
+    // fromSquare.classList.remove(pieceClass);
 
+    if (targetPieceClass) {
+        // remove the captured piece from the captured pieces container
+        const capturedPiece = document.createElement('div');
+        capturedPiece.classList.add(targetPieceClass);
+        if (targetPieceClass.startsWith('white')) {
+            for (let i = 0; i < capturedWhitePiecesContainer.children.length; i++) {
+                if (capturedWhitePiecesContainer.children[i].classList.contains(targetPieceClass)) {
+                    capturedWhitePiecesContainer.removeChild(capturedWhitePiecesContainer.children[i]);
+                    break;
+                }
+            }
+        } else {
+            for (let i = 0; i < capturedBlackPiecesContainer.children.length; i++) {
+                if (capturedBlackPiecesContainer.children[i].classList.contains(targetPieceClass)) {
+                    capturedBlackPiecesContainer.removeChild(capturedBlackPiecesContainer.children[i]);
+                    break;
+                }
+            }
+        }
+    }
+    console.log("Number of captured pieces: ", capturedWhitePiecesContainer.children.length + capturedBlackPiecesContainer.children.length);
+    capturedWhitePiecesContainer.style.height = 'auto';
+    capturedBlackPiecesContainer.style.height = 'auto';
     return kingInCheck;
 }
 
