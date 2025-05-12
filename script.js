@@ -80,14 +80,12 @@ function handleSquareClick(square) {
             movePiece(selectedSquare, square);
             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
             updateTurnIndicator();
-            if (isKingInCheck(currentPlayer)) {
-                if (isCheckmate(currentPlayer)) {
-                    alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins! Checkmate!`);
-                    showGameOverOverlay(currentPlayer === 'white' ? 'Black' : 'White');
-                    return;
-                } else {
-                    alert(`${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} King is in check!`);
-                }
+            if (isCheckmate(currentPlayer)) {
+                alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins! Checkmate!`);
+                showGameOverOverlay(currentPlayer === 'white' ? 'Black' : 'White');
+                return;
+            } else {
+                alert(`${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} King is in check!`);
             }
         }
 
@@ -207,7 +205,6 @@ function updateTurnIndicator() {
 }
 
 function resetBoard() {
-    boardState = initialBoard.map(row => row.slice());
     selectedSquare = null;
     currentPlayer = 'white';
 
@@ -265,6 +262,7 @@ function isKingInCheck(playerColor) {
 function isCheckmate(playerColor) {
     let kingRow, kingCol;
     let kingClass;
+    // find the king's position.
     for (let row = 0; row < 8; row++) {
         for (let col = 0; col < 8; col++) {
             const square = document.querySelector(`.chessboard div[data-row="${row}"][data-col="${col}"]`);
@@ -277,6 +275,10 @@ function isCheckmate(playerColor) {
             }
         }
     }
+    //check that the king is actually in check
+    if (!isKingInCheck(playerColor)) {
+        return false;
+    }
     let kingInCheck;
     console.log(`King position: (${kingRow}, ${kingCol})`);
     for (let toRow = kingRow - 1; toRow <= kingRow + 1; toRow++) {
@@ -286,13 +288,6 @@ function isCheckmate(playerColor) {
                 const square = document.querySelector(`.chessboard div[data-row="${toRow}"][data-col="${toCol}"]`);
                 const targetPieceClass = square ? [...square.classList].find(cls => cls.includes('-')) : null;
                 const targetColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
-                // console.log(isValidMove(kingClass, kingRow, kingCol, toRow, toCol, targetPieceClass));
-                // console.log(isValidMove(targetPieceClass, kingRow, kingCol, toRow, toCol, kingClass));
-                // console.log(`Is valid move: ${isValidMove(kingClass, kingRow, kingCol, toRow, toCol, targetPieceClass)}`);
-                // console.log(`Color Check: ${targetColor !== playerColor}`);
-                // console.log(`Target Piece Class: ${targetPieceClass}`);
-                // console.log(`Target Color: ${targetColor}`);
-                // console.log(`Player Color: ${playerColor}`);
                 if ((targetColor !== playerColor || targetPieceClass === undefined) && isValidMove(kingClass, kingRow, kingCol, toRow, toCol, targetPieceClass)) {
                     kingInCheck = simulateMove(kingRow, kingCol, toRow, toCol);
                     console.log(`King ${kingInCheck} in simulation by ${targetPieceClass} at (${toRow}, ${toCol})`);
@@ -317,7 +312,7 @@ function isCheckmate(playerColor) {
                         if (targetColor === playerColor && isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
                             kingInCheck = simulateMove(fromRow, fromCol, toRow, toCol);
                             if (!kingInCheck) {
-                                // console.log(`${piece} can move from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol}) without putting the ${playerColor} king in check`);
+                                console.log(`${piece} can move from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol}) without putting the ${playerColor} king in check`);
                                 return false; 
                             }
                         }
@@ -380,7 +375,6 @@ function simulateMove(fromRow, fromCol, toRow, toCol) {
     const fromSquare = document.querySelector(`.chessboard div[data-row="${fromRow}"][data-col="${fromCol}"]`);
     const toSquare = document.querySelector(`.chessboard div[data-row="${toRow}"][data-col="${toCol}"]`);
 
-    const pieceClass = [...fromSquare.classList].find(cls => cls.includes('-'));
     const targetPieceClass = [...toSquare.classList].find(cls => cls.includes('-'));
 
     movePiece(fromSquare, toSquare);    
@@ -411,7 +405,7 @@ function simulateMove(fromRow, fromCol, toRow, toCol) {
             }
         }
     }
-    console.log("Number of captured pieces: ", capturedWhitePiecesContainer.children.length + capturedBlackPiecesContainer.children.length);
+    // console.log("Number of captured pieces: ", capturedWhitePiecesContainer.children.length + capturedBlackPiecesContainer.children.length);
     capturedWhitePiecesContainer.style.height = 'auto';
     capturedBlackPiecesContainer.style.height = 'auto';
     return kingInCheck;
