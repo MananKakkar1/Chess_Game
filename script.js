@@ -44,35 +44,124 @@ function botMove() {
 }
 
 function makeRandomMove() {
-    let validMoves;
-    // Check if the king is in check and fetch appropriate moves
-    if (isKingInCheck('black')) {
-        validMoves = getAllCheckValidMoves('black');
-    } else {
-        validMoves = getAllValidMoves('black');
-    }
-    console.log(validMoves.length); // Log the number of valid moves
+    let validMoves = isKingInCheck('black')
+        ? getAllCheckValidMoves('black')
+        : getAllValidMoves('black');
 
-    if (validMoves.length > 0) {
-        let move = undefined;
-        while (move === undefined) {
-            move = validMoves[Math.floor(Math.random() * validMoves.length)];
-        }
-        console.log(`Bot move: ${move.fromRow}, ${move.fromCol} to ${move.toRow}, ${move.toCol}, ${move}`);
-        if (move && move.fromRow !== undefined && move.fromCol !== undefined && move.toRow !== undefined && move.toCol !== undefined) {
-            console.log("Executing Move:", move);
-            executeMove(move);
+    // Filter out moves that leave the king in check
+    validMoves = validMoves.filter(move => {
+        const fromSq = document.querySelector(`.chessboard div[data-row="${move.fromRow}"][data-col="${move.fromCol}"]`);
+        const toSq = document.querySelector(`.chessboard div[data-row="${move.toRow}"][data-col="${move.toCol}"]`);
+        const pieceCls = [...fromSq.classList].find(cls => cls.includes('-'));
+        const targetCls = [...toSq.classList].find(cls => cls.includes('-'));
+        movePiece(fromSq, toSq, move.fromRow, move.fromCol, move.toRow, move.toCol);
+        const kingStillInCheck = isKingInCheck('black');
+        // Undo move
+        movePiece(toSq, fromSq, move.toRow, move.toCol, move.fromRow, move.fromCol);
+        if (targetCls) toSq.classList.add(targetCls);
+        return !kingStillInCheck;
+    });
+
+    if (validMoves.length === 0) {
+        if (isKingInCheck('black')) {
+            alert("White wins! Checkmate!");
+            showGameOverOverlay('White');
         } else {
-            console.error("Invalid Move Object:", move);
+            alert("Stalemate!");
+            showGameOverOverlay('None');
         }
-        currentPlayer = 'white'; // Switch back to the player
-        updateTurnIndicator();
-    } else {
-        console.log("No valid moves for the bot. Stalemate or skip turn.");
+        return;
+    }
+
+    // Bot makes a random valid move
+    const move = validMoves[Math.floor(Math.random() * validMoves.length)];
+    executeMove(move);
+    currentPlayer = 'white';
+    updateTurnIndicator();
+
+    // Check if white is now in check or checkmate
+    if (isKingInCheck('white')) {
+        if (isCheckmate('white')) {
+            alert("Black wins! Checkmate!");
+            showGameOverOverlay('Black');
+        } else {
+            alert("White King is in check!");
+        }
     }
 }
 
-function makeGreedyMove() {}
+function makeGreedyMove() {
+    let validMoves = isKingInCheck('black')
+        ? getAllCheckValidMoves('black')
+        : getAllValidMoves('black');
+
+    // Assign values to pieces for prioritizing captures
+    const pieceValues = {
+        'white-queen': 9,
+        'white-rook': 5,
+        'white-bishop': 3,
+        'white-knight': 3,
+        'white-pawn': 1,
+        'white-king': 100 // king is not capturable, but for completeness
+    };
+
+    // Find all capturing moves and their values
+    let bestValue = -1;
+    let bestMoves = [];
+
+    validMoves.forEach(move => {
+        const fromSq = document.querySelector(`.chessboard div[data-row="${move.fromRow}"][data-col="${move.fromCol}"]`);
+        const toSq = document.querySelector(`.chessboard div[data-row="${move.toRow}"][data-col="${move.toCol}"]`);
+        const targetCls = [...toSq.classList].find(cls => cls.includes('-'));
+        let value = targetCls && pieceValues[targetCls] ? pieceValues[targetCls] : 0;
+
+        // Simulate the move
+        movePiece(fromSq, toSq, move.fromRow, move.fromCol, move.toRow, move.toCol);
+        const kingStillInCheck = isKingInCheck('black');
+        movePiece(toSq, fromSq, move.toRow, move.toCol, move.fromRow, move.fromCol);
+        if (targetCls) toSq.classList.add(targetCls);
+
+        if (!kingStillInCheck) {
+            if (value > bestValue) {
+                bestValue = value;
+                bestMoves = [move];
+            } else if (value === bestValue) {
+                bestMoves.push(move);
+            }
+        }
+    });
+
+    // If no capturing move, fallback to any valid move
+    let move;
+    if (bestMoves.length > 0) {
+        move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+    } else if (validMoves.length > 0) {
+        move = validMoves[Math.floor(Math.random() * validMoves.length)];
+    } else {
+        if (isKingInCheck('black')) {
+            alert("White wins! Checkmate!");
+            showGameOverOverlay('White');
+        } else {
+            alert("Stalemate!");
+            showGameOverOverlay('None');
+        }
+        return;
+    }
+
+    executeMove(move);
+    currentPlayer = 'white';
+    updateTurnIndicator();
+
+    // Check if white is now in check or checkmate
+    if (isKingInCheck('white')) {
+        if (isCheckmate('white')) {
+            alert("Black wins! Checkmate!");
+            showGameOverOverlay('Black');
+        } else {
+            alert("White King is in check!");
+        }
+    }
+}
 function makeMinimaxMove() {}
 
 function getAllValidMoves(playerColor) {
@@ -628,22 +717,28 @@ function handleBotSquareClick(square) {
 
         const pieceClass = [...selectedSquare.classList].find(cls => cls.includes('-'));
         const targetPieceClass = [...square.classList].find(cls => cls.includes('-'));
-        const pieceColor = pieceClass && pieceClass.startsWith('white') ? 'white' : 'black';
+        let targetColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
+        let pieceColor = pieceClass && pieceClass.startsWith('white') ? 'white' : 'black';
 
-        // Prevent moving pieces that do not belong to the current player
-        if (pieceColor !== currentPlayer) {
-            alert(`It's ${currentPlayer}'s turn! You cannot move ${pieceColor} pieces.`);
+        if (targetPieceClass && targetColor === pieceColor) {
             selectedSquare.classList.remove('selected');
             selectedSquare = null;
             return;
         }
 
-        if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass) && currentPlayer === 'white') {
+        if (pieceColor !== currentPlayer) {
+            alert(`It's ${currentPlayer}'s turn!`);
+            selectedSquare.classList.remove('selected');
+            selectedSquare = null;
+            return;
+        }
+
+        if (isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClass)) {
             movePiece(selectedSquare, square, fromRow, fromCol, toRow, toCol);
 
             if (isKingInCheck(currentPlayer)) {
                 movePiece(square, selectedSquare, toRow, toCol, fromRow, fromCol);
-                square.classList.add(targetPieceClass);
+                if (targetPieceClass) square.classList.add(targetPieceClass);
                 alert("Invalid move: Your king is in check!");
                 selectedSquare.classList.remove('selected');
                 selectedSquare = null;
@@ -652,12 +747,6 @@ function handleBotSquareClick(square) {
 
             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
             updateTurnIndicator();
-
-            selectedSquare = null; // Reset selectedSquare after a valid move
-
-            if (currentPlayer === 'black') {
-                setTimeout(botMove, 500); // Bot moves after a short delay
-            }
 
             if (isKingInCheck(currentPlayer)) {
                 if (isCheckmate(currentPlayer)) {
@@ -668,16 +757,19 @@ function handleBotSquareClick(square) {
                     alert(`${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} King is in check!`);
                 }
             }
+
+            // Bot's turn
+            if (currentPlayer === 'black') {
+                setTimeout(() => {
+                    makeRandomMove();
+                }, 500);
+            }
         }
-        if (selectedSquare !== null) {
-            selectedSquare.classList.remove('selected');
-            selectedSquare = null; // Reset selectedSquare if the move is invalid
-        }
+
+        selectedSquare.classList.remove('selected');
+        selectedSquare = null;
         return;
     } else if ([...square.classList].some(cls => cls.includes('-'))) {
-        const row = parseInt(square.dataset.row);
-        const col = parseInt(square.dataset.col);
-
         const pieceClass = [...square.classList].find(cls => cls.includes('-'));
         const pieceColor = pieceClass && pieceClass.startsWith('white') ? 'white' : 'black';
 
@@ -686,7 +778,7 @@ function handleBotSquareClick(square) {
             return;
         }
 
-        selectedSquare = square; // Update selectedSquare when a new square is clicked
+        selectedSquare = square;
         square.classList.add('selected');
         return;
     }
