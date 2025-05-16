@@ -1,6 +1,6 @@
 const chessboard = document.querySelector('.chessboard');
 const turnIndicator = document.querySelector('#turn-indicator');
-
+const engine = new Worker('stockfish.js');
 const initialBoard = [
     ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
     ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
@@ -33,6 +33,76 @@ let currentPlayer = 'white';
 let lastMove = null;
 let pastMoves = [];
 
+function getStockfishBestMove(fen, callback) {
+    engine.postMessage('uci');
+    engine.postMessage('ucinewgame');
+    engine.postMessage('position fen ' + fen);
+    engine.postMessage('setoption name MultiPV value 3'); // Ask for top 3 moves
+    engine.postMessage('go movetime 500');
+    engine.onmessage = function(event) {
+        const line = event.data;
+        if (line.startsWith('bestmove')) {
+            const move = line.split(' ')[1];
+            callback(move);
+        }
+    };
+}
+
+function uciToCoords(uci) {
+    const fileToCol = { a:0, b:1, c:2, d:3, e:4, f:5, g:6, h:7 };
+    const fromFile = uci[0];
+    const fromRank = uci[1];
+    const toFile = uci[2];
+    const toRank = uci[3];
+    return {
+        fromRow: 8 - parseInt(fromRank),
+        fromCol: fileToCol[fromFile],
+        toRow: 8 - parseInt(toRank),
+        toCol: fileToCol[toFile]
+    };
+}
+
+function getFenFromBoard() {
+    let fen = '';
+    for (let row = 0; row < 8; row++) {
+        let empty = 0;
+        for (let col = 0; col < 8; col++) {
+            const square = document.querySelector(`.chessboard div[data-row="${row}"][data-col="${col}"]`);
+            const pieceClass = square ? [...square.classList].find(cls => cls.includes('-')) : null;
+            let symbol = '';
+            switch (pieceClass) {
+                case 'white-pawn': symbol = 'P'; break;
+                case 'white-rook': symbol = 'R'; break;
+                case 'white-knight': symbol = 'N'; break;
+                case 'white-bishop': symbol = 'B'; break;
+                case 'white-queen': symbol = 'Q'; break;
+                case 'white-king': symbol = 'K'; break;
+                case 'black-pawn': symbol = 'p'; break;
+                case 'black-rook': symbol = 'r'; break;
+                case 'black-knight': symbol = 'n'; break;
+                case 'black-bishop': symbol = 'b'; break;
+                case 'black-queen': symbol = 'q'; break;
+                case 'black-king': symbol = 'k'; break;
+                default: symbol = '';
+            }
+            if (symbol === '') {
+                empty++;
+            } else {
+                if (empty > 0) {
+                    fen += empty;
+                    empty = 0;
+                }
+                fen += symbol;
+            }
+        }
+        if (empty > 0) fen += empty;
+        if (row < 7) fen += '/';
+    }
+    // Add side to move, castling, en passant, halfmove, fullmove (basic version)
+    fen += ' ' + (currentPlayer === 'white' ? 'w' : 'b') + ' - - 0 1';
+    return fen;
+}
+
 function botMove() {
     console.log("Bot's turn to move!");
     const difficultyDropdown = document.getElementById('bot-difficulty');
@@ -42,9 +112,10 @@ function botMove() {
         makeRandomMove();
     } else if (difficulty === 'medium') {
         makeGreedyMove();
+    } else if (difficulty === 'hard') {
+        makeBestMove();
     } else if (difficulty === 'AI') {
-        alert("Hard mode is not implemented yet.");
-        makeMLBestMove();
+        makeAIBestMove();
     }
 }
 
@@ -165,7 +236,19 @@ function makeGreedyMove() {
         }
     }
 }
-async function makeMLBestMove() {
+
+function makeBestMove() {
+    const fen = getFenFromBoard(); // Implement this or use chess.js
+    getStockfishBestMove(fen, function(uciMove) {
+        const moveCoords = uciToCoords(uciMove);
+        executeMove(moveCoords);
+        currentPlayer = 'white';
+        updateTurnIndicator();
+    });
+}
+
+
+async function makeAIBestMove() {
     // Gather the board state as a 2D array of piece class names
     const board = [];
     for (let row = 0; row < 8; row++) {
