@@ -37,7 +37,7 @@ function getStockfishBestMove(fen, callback) {
     engine.postMessage('uci');
     engine.postMessage('ucinewgame');
     engine.postMessage('position fen ' + fen);
-    engine.postMessage('setoption name MultiPV value 3'); // Ask for top 3 moves
+    engine.postMessage('setoption name MultiPV value 3'); 
     engine.postMessage('go movetime 500');
     engine.onmessage = function(event) {
         const line = event.data;
@@ -98,7 +98,6 @@ function getFenFromBoard() {
         if (empty > 0) fen += empty;
         if (row < 7) fen += '/';
     }
-    // Add side to move, castling, en passant, halfmove, fullmove (basic version)
     fen += ' ' + (currentPlayer === 'white' ? 'w' : 'b') + ' - - 0 1';
     return fen;
 }
@@ -106,7 +105,7 @@ function getFenFromBoard() {
 function botMove() {
     console.log("Bot's turn to move!");
     const difficultyDropdown = document.getElementById('bot-difficulty');
-    const difficulty = difficultyDropdown ? difficultyDropdown.value : 'easy'; // fallback to easy
+    const difficulty = difficultyDropdown ? difficultyDropdown.value : 'easy'; 
     alert(`Bot is thinking... Difficulty: ${difficulty}`);
     if (difficulty === 'easy') {
         makeRandomMove();
@@ -124,7 +123,6 @@ function makeRandomMove() {
         ? getAllCheckValidMoves('black')
         : getAllValidMoves('black');
 
-    // Filter out moves that leave the king in check
     validMoves = validMoves.filter(move => {
         const fromSq = document.querySelector(`.chessboard div[data-row="${move.fromRow}"][data-col="${move.fromCol}"]`);
         const toSq = document.querySelector(`.chessboard div[data-row="${move.toRow}"][data-col="${move.toCol}"]`);
@@ -148,12 +146,10 @@ function makeRandomMove() {
         return;
     }
 
-    // Bot makes a random valid move
     const move = validMoves[Math.floor(Math.random() * validMoves.length)];
     executeMove(move);
     currentPlayer = 'white';
     updateTurnIndicator();
-    // Check if white is now in check or checkmate
     if (isKingInCheck('white')) {
         if (isCheckmate('white')) {
             alert("Black wins! Checkmate!");
@@ -169,17 +165,15 @@ function makeGreedyMove() {
         ? getAllCheckValidMoves('black')
         : getAllValidMoves('black');
 
-    // Assign values to pieces for prioritizing captures
     const pieceValues = {
         'white-queen': 9,
         'white-rook': 5,
         'white-bishop': 3,
         'white-knight': 3,
         'white-pawn': 1,
-        'white-king': 100 // king is not capturable, but for completeness
+        'white-king': 100 
     };
 
-    // Find all capturing moves and their values
     let bestValue = -1;
     let bestMoves = [];
 
@@ -189,7 +183,6 @@ function makeGreedyMove() {
         const targetCls = [...toSq.classList].find(cls => cls.includes('-'));
         let value = targetCls && pieceValues[targetCls] ? pieceValues[targetCls] : 0;
 
-        // Simulate the move
         movePiece(fromSq, toSq, move.fromRow, move.fromCol, move.toRow, move.toCol);
         const kingStillInCheck = isKingInCheck('black');
         movePiece(toSq, fromSq, move.toRow, move.toCol, move.fromRow, move.fromCol);
@@ -205,7 +198,6 @@ function makeGreedyMove() {
         }
     });
 
-    // If no capturing move, fallback to any valid move
     let move;
     if (bestMoves.length > 0) {
         move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
@@ -226,7 +218,6 @@ function makeGreedyMove() {
     currentPlayer = 'white';
     updateTurnIndicator();
 
-    // Check if white is now in check or checkmate
     if (isKingInCheck('white')) {
         if (isCheckmate('white')) {
             alert("Black wins! Checkmate!");
@@ -238,7 +229,7 @@ function makeGreedyMove() {
 }
 
 function makeBestMove() {
-    const fen = getFenFromBoard(); // Implement this or use chess.js
+    const fen = getFenFromBoard(); 
     getStockfishBestMove(fen, function(uciMove) {
         const moveCoords = uciToCoords(uciMove);
         executeMove(moveCoords);
@@ -249,7 +240,6 @@ function makeBestMove() {
 
 
 async function makeAIBestMove() {
-    // Gather the board state as a 2D array of piece class names
     const board = [];
     for (let row = 0; row < 8; row++) {
         const boardRow = [];
@@ -287,7 +277,6 @@ async function makeAIBestMove() {
             lastMove = data.move;
             pastMoves.push(data.move);
             updateTurnIndicator();
-            // Check if white is now in check or checkmate
             if (isKingInCheck('white')) {
                 if (isCheckmate('white')) {
                     alert("Black wins! Checkmate!");
@@ -353,7 +342,6 @@ function getAllCheckValidMoves(playerColor) {
             }
         }
         let kingInCheck;
-        //Check if the king can move to a safe square
         for (let toRow = fromRow - 1; toRow <= fromRow + 1; toRow++) {
             for (let toCol = fromCol - 1; toCol <= fromCol + 1; toCol++) {
                 if (toRow >= 0 && toRow < 8 && toCol >= 0 && toCol < 8 && (toRow !== fromRow || toCol !== fromCol)) {
@@ -372,7 +360,6 @@ function getAllCheckValidMoves(playerColor) {
                 }
             }
         }
-        //Check if any other pieces can move to block the check
         for (let fromRow = 0; fromRow < 8; fromRow++) {
             for (let fromCol = 0; fromCol < 8; fromCol++) {
                 const square = document.querySelector(`.chessboard div[data-row="${fromRow}"][data-col="${fromCol}"]`);
@@ -471,7 +458,6 @@ function handleSquareClick(square) {
         if (targetColor === pieceColor) {
             selectedSquare.classList.remove('selected');
             selectedSquare = null;
-            // alert("You cannot capture your own piece!");
             return;
         }
         // console.log(`Moving ${pieceClass} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
@@ -536,7 +522,6 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
     const rowDiff = Math.abs(toRow - fromRow);
     const colDiff = Math.abs(toCol - fromCol);
 
-    // Prevent moving to a spot occupied by a like-colored piece
     if (targetPieceClass && pieceClass.startsWith('white') && targetPieceClass.startsWith('white')) {
         return false;
     }
@@ -546,7 +531,7 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
 
     switch (pieceClass) {
         case 'white-pawn':
-            if (toRow >= fromRow) return false; // White pawns can only move up
+            if (toRow >= fromRow) return false;
             if (fromRow === 6 && rowDiff === 2 && colDiff === 0 && !targetPieceClass) {
                 return true;
             }
@@ -559,7 +544,7 @@ function isValidMove(pieceClass, fromRow, fromCol, toRow, toCol, targetPieceClas
             return false;
 
         case 'black-pawn':
-            if (toRow <= fromRow) return false; // Black pawns can only move down
+            if (toRow <= fromRow) return false; 
             if (fromRow === 1 && rowDiff === 2 && colDiff === 0 && !targetPieceClass) {
                 return true;
             }
@@ -899,11 +884,8 @@ function handleBotSquareClick(square) {
                 }
             }
 
-            // Bot's turn
             if (currentPlayer === 'black') {
-                setTimeout(() => {
-                    botMove();
-                }, 500);
+                setTimeout(() => {botMove();}, 500);
             }
         }
 
