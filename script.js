@@ -30,6 +30,8 @@ let boardState = initialBoard.map(row => row.slice());
 let pieceColors = initialColors.map(row => row.slice());
 let selectedSquare = null;
 let currentPlayer = 'white';
+let lastMove = null;
+let pastMoves = [];
 
 function botMove() {
     console.log("Bot's turn to move!");
@@ -40,7 +42,7 @@ function botMove() {
         makeRandomMove();
     } else if (difficulty === 'medium') {
         makeGreedyMove();
-    } else if (difficulty === 'hard') {
+    } else if (difficulty === 'AI') {
         alert("Hard mode is not implemented yet.");
         makeMLBestMove();
     }
@@ -59,7 +61,6 @@ function makeRandomMove() {
         const targetCls = [...toSq.classList].find(cls => cls.includes('-'));
         movePiece(fromSq, toSq, move.fromRow, move.fromCol, move.toRow, move.toCol);
         const kingStillInCheck = isKingInCheck('black');
-        // Undo move
         movePiece(toSq, fromSq, move.toRow, move.toCol, move.fromRow, move.fromCol);
         if (targetCls) toSq.classList.add(targetCls);
         return !kingStillInCheck;
@@ -81,7 +82,6 @@ function makeRandomMove() {
     executeMove(move);
     currentPlayer = 'white';
     updateTurnIndicator();
-
     // Check if white is now in check or checkmate
     if (isKingInCheck('white')) {
         if (isCheckmate('white')) {
@@ -178,12 +178,17 @@ async function makeMLBestMove() {
         board.push(boardRow);
     }
 
+    let validMoves = isKingInCheck('black')
+        ? getAllCheckValidMoves('black')
+        : getAllValidMoves('black');
+
     const payload = {
         board,
+        lastMove,
+        pastMoves,
+        validMoves,
         player: 'black'
     };
-
-    alert("Bot is thinking...");
 
     try {
         const response = await fetch('http://localhost:5000/api/llm-chess-move', {
@@ -192,12 +197,13 @@ async function makeMLBestMove() {
             body: JSON.stringify(payload)
         });
         const data = await response.json();
-
         if (data && data.move) {
+            console.log('AI move:', data.move);
             executeMove(data.move);
             currentPlayer = 'white';
+            lastMove = data.move;
+            pastMoves.push(data.move);
             updateTurnIndicator();
-
             // Check if white is now in check or checkmate
             if (isKingInCheck('white')) {
                 if (isCheckmate('white')) {

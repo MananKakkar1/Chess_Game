@@ -14,19 +14,31 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 def llm_chess_move():
     data = request.get_json()
     board = data['board']
+    print(f"Received board: {board}")
     player = data['player']
-
+    lastMove = data['lastMove']
+    pastMoves = data['pastMoves']
+    validMoves = data['validMoves']
     # Convert board to a string for the prompt
     board_string = '\n'.join([','.join([cell if cell else 'empty' for cell in row]) for row in board])
-
-    prompt = f"""
-You are a chess engine. Given the following board state (8x8, top row is row 0, left column is col 0), and it's {player}'s turn, return the best legal move as JSON in the format:
-{{"fromRow": int, "fromCol": int, "toRow": int, "toCol": int}}
-Only return the JSON object, nothing else.
-
-Board:
-{board_string}
-"""
+    print(f"Board string: {board_string}")
+    prompt = f"""You are a chess engine. The board is an 8x8, 0-indexed matrix (row 0 is top, col 0 is left). Each cell contains a piece (e.g., "white-queen") or None.
+    Board:
+    {board_string}
+    Chess rules:
+    NOTE ANY PIECE CANNOT OVERLAP WITH ANOTHER LIKE-COLORED PIECE AND A PIECE CANNOT BE MOVED TO A CELL IF THERE IS ANOTHER PIECE BLOCKING ITS PATH.
+    A piece has its path blocked if there is a piece between the origin and destination cell. This applies to all pieces except the knight.
+    - King: moves 1 square any direction.
+    - Queen: any number of squares, any direction if its path is NOT blocked by ANY PIECE.
+    - Rook: any number of squares, horizontal/vertical if its path is NOT blocked by ANY PIECE.
+    - Bishop: any number of squares, diagonal if its path is NOT blocked by ANY PIECE.
+    - Knight: "L" shape (2+1).
+    - Pawn: forward 1, captures diagonally, first move can go 2. Promote on last rank.
+    - Make sure to check for any blockages on the path for any piece. If a like colored piece is in the way, the move is illegal. Also, if a opposite colored piece is in the way, it is a valid capture unless it breaks the rule of movement of the piece.
+    It's {player}'s turn. Reply ONLY with the best legal move as JSON: {{"fromRow": int, "fromCol": int, "toRow": int, "toCol": int}}. 
+    Never make the same move twice. Make sure the move differs from any move in {pastMoves}. In the board, None represents an empty cell. Never make a move from an empty cell or a cell with None in the board. 
+    The current possible moves are: {validMoves}.
+    """
 
     try:
         response = openai.ChatCompletion.create(
