@@ -33,13 +33,16 @@ let currentPlayer = 'white';
 
 function botMove() {
     console.log("Bot's turn to move!");
-    const difficulty = document.getElementById('bot-difficulty').value;
+    const difficultyDropdown = document.getElementById('bot-difficulty');
+    const difficulty = difficultyDropdown ? difficultyDropdown.value : 'easy'; // fallback to easy
+    alert(`Bot is thinking... Difficulty: ${difficulty}`);
     if (difficulty === 'easy') {
         makeRandomMove();
     } else if (difficulty === 'medium') {
         makeGreedyMove();
     } else if (difficulty === 'hard') {
-        makeMinimaxMove();
+        alert("Hard mode is not implemented yet.");
+        makeMLBestMove();
     }
 }
 
@@ -162,7 +165,56 @@ function makeGreedyMove() {
         }
     }
 }
-function makeMinimaxMove() {}
+async function makeMLBestMove() {
+    // Gather the board state as a 2D array of piece class names
+    const board = [];
+    for (let row = 0; row < 8; row++) {
+        const boardRow = [];
+        for (let col = 0; col < 8; col++) {
+            const square = document.querySelector(`.chessboard div[data-row="${row}"][data-col="${col}"]`);
+            const pieceClass = square ? [...square.classList].find(cls => cls.includes('-')) : null;
+            boardRow.push(pieceClass || null);
+        }
+        board.push(boardRow);
+    }
+
+    const payload = {
+        board,
+        player: 'black'
+    };
+
+    alert("Bot is thinking...");
+
+    try {
+        const response = await fetch('http://localhost:5000/api/llm-chess-move', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (data && data.move) {
+            executeMove(data.move);
+            currentPlayer = 'white';
+            updateTurnIndicator();
+
+            // Check if white is now in check or checkmate
+            if (isKingInCheck('white')) {
+                if (isCheckmate('white')) {
+                    alert("Black wins! Checkmate!");
+                    showGameOverOverlay('Black');
+                } else {
+                    alert("White King is in check!");
+                }
+            }
+        } else {
+            alert("No valid move returned by AI.");
+        }
+    } catch (error) {
+        console.error('Error querying LLM for chess move:', error);
+        alert("Failed to get move from AI.");
+    }
+}
 
 function getAllValidMoves(playerColor) {
     const moves = [];
@@ -761,7 +813,7 @@ function handleBotSquareClick(square) {
             // Bot's turn
             if (currentPlayer === 'black') {
                 setTimeout(() => {
-                    makeRandomMove();
+                    botMove();
                 }, 500);
             }
         }
