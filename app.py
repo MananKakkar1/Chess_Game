@@ -28,6 +28,8 @@ def llm_chess_move():
     Chess rules:
     NOTE ANY PIECE CANNOT OVERLAP WITH ANOTHER LIKE-COLORED PIECE AND A PIECE CANNOT BE MOVED TO A CELL IF THERE IS ANOTHER PIECE BLOCKING ITS PATH.
     A piece has its path blocked if there is a piece between the origin and destination cell. This applies to all pieces except the knight.
+    If you a king is in check, you must make a move to get out of check. This can include capturing the piece that is putting you in check or moving the king to a safe square. You cannot make a move that puts your king in check.
+    A piece can be captured if it is an opponent's piece and is in the path of a piece that can capture it. The following are the rules for each piece:
     - King: moves 1 square any direction.
     - Queen: any number of squares, any direction if its path is NOT blocked by ANY PIECE.
     - Rook: any number of squares, horizontal/vertical if its path is NOT blocked by ANY PIECE.
@@ -45,7 +47,7 @@ def llm_chess_move():
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=100,
-            temperature=0.2
+            temperature=0.8
         )
         content = response.choices[0].message.content
         import re, json
