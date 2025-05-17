@@ -40,11 +40,11 @@ def llm_chess_move():
     It's {player}'s turn. Reply ONLY with the best legal move as JSON: {{"fromRow": int, "fromCol": int, "toRow": int, "toCol": int}}. 
     Never make the same move twice. Make sure the move differs from any move in {pastMoves}. In the board, None represents an empty cell. Never make a move from an empty cell or a cell with None in the board. 
     The current possible moves are: {validMoves}.
-    """
+    """.strip()
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o",
+            model="gpt-3.5-turbo", #change to gpt-4o for better results, 3.5-turbo is ALOT cheaper
             messages=[{"role": "user", "content": prompt}],
             max_tokens=100,
             temperature=0.8
