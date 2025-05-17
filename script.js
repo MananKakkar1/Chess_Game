@@ -310,7 +310,6 @@ function getAllValidMoves(playerColor) {
                         const targetPieceClass = targetSquare ? [...targetSquare.classList].find(cls => cls.includes('-')) : null;
 
                         if (isValidMove(piece, fromRow, fromCol, toRow, toCol, targetPieceClass) && !isPathBlocked(fromRow, fromCol, toRow, toCol) && !isKingInCheck('black') && (fromRow !== toRow || fromCol !== toCol)) {
-                            console.log(`Valid move for ${piece} from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
                             kingInCheck = simulateMove(fromRow, fromCol, toRow, toCol);
                             if (!kingInCheck) {
                                 moves.push({ fromRow, fromCol, toRow, toCol });
