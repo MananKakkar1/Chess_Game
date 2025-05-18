@@ -601,9 +601,13 @@ function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
         const capturedPiece = document.createElement('div');
         capturedPiece.classList.add(targetPieceClass);
         if (playerColor === 'white') {
-            capturedWhitePiecesContainer.appendChild(capturedPiece);
+            if (capturedWhitePiecesContainer) {
+                capturedWhitePiecesContainer.appendChild(capturedPiece);
+            }
         } else {
-            capturedBlackPiecesContainer.appendChild(capturedPiece);
+            if (capturedBlackPiecesContainer) {
+                capturedBlackPiecesContainer.appendChild(capturedPiece);
+            }
         }
     }
 

@@ -19,7 +19,7 @@ global.handleSquareClick = () => {};
 document.body.innerHTML = '<div class="chessboard"></div><div id="reset-button"></div>';
 
 // Now require script.js (after all mocks and DOM are set up)
-const { isValidMove, isKingInCheck, isCheckmate, getAllValidMoves, movePiece } = require('./script');
+const { isValidMove, isKingInCheck, isCheckmate, getAllValidMoves, movePiece, isPathBlocked } = require('./script');
 
 beforeEach(() => {
     document.body.innerHTML = '<div class="chessboard"></div>';
@@ -162,6 +162,25 @@ test('isCheckmate returns true when king is checkmated', () => {
 });
 */
 
+test('isCheckmate returns false when black-king is just checked, not checkmated', () => {
+    const kingSq = document.querySelector('[data-row="4"][data-col="4"]');
+    kingSq.classList.add('black-king');
+    const attacker1 = document.querySelector('[data-row="6"][data-col="5"]');
+    attacker1.classList.add('white-knight');
+    const result = isCheckmate('black');
+    expect(result).toBe(false);
+});
+
+test('isCheckmate returns true when black-king is checkmated by the 4-move checkmate', () => {
+    placePieces(layout); // Place pieces on the board to setup the game normally. Then simulate the 4-move checkmate.
+    movePiece(document.querySelector('[data-row="1"][data-col="4"]'), document.querySelector('[data-row="2"][data-col="4"]'), 1, 4, 2, 4);
+    movePiece(document.querySelector('[data-row="0"][data-col="3"]'), document.querySelector('[data-row="4"][data-col="7"]'), 0, 3, 4, 7);
+    movePiece(document.querySelector('[data-row="0"][data-col="5"]'), document.querySelector('[data-row="3"][data-col="2"]'), 0, 5, 3, 2);
+    movePiece(document.querySelector('[data-row="4"][data-col="7"]'), document.querySelector('[data-row="6"][data-col="5"]'), 4, 7, 6, 5);
+    const result = isCheckmate('black');
+    expect(result).toBe(true);
+});
+
 /*
 isPathBlocked test cases:
 test('isPathBlocked returns true when a piece blocks the path', () => {
@@ -173,3 +192,45 @@ test('isPathBlocked returns true when a piece blocks the path', () => {
 });
 */
 
+test('isPathBlocked returns true when a piece blocks the path', () => {
+    const piece = document.querySelector('[data-row="6"][data-col="4"]');
+    piece.classList.add('white-queen');
+    const blocker = document.querySelector('[data-row="4"][data-col="4"]');
+    blocker.classList.add('white-pawn');
+    const result = isPathBlocked(6, 4, 2, 4);
+    expect(result).toBe(true);
+});
+
+test('isPathBlocked returns false when no piece blocks the path', () => {
+    const piece = document.querySelector('[data-row="6"][data-col="4"]');
+    piece.classList.add('white-queen');
+    const result = isPathBlocked(6, 4, 2, 4);
+    expect(result).toBe(false);
+});
+
+/**
+ * Places pieces on the chessboard according to a 2D array.
+ * @param {string[][]} layout - 8x8 array where each cell is a piece class or null.
+ */
+function placePieces(layout) {
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const pieceClass = layout[row][col];
+            if (pieceClass) {
+                const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                if (square) square.classList.add(pieceClass);
+            }
+        }
+    }
+}
+
+const layout = [
+    ['black-rook', 'black-knight', 'black-bishop', 'black-queen', 'black-king', 'black-bishop', 'black-knight', 'black-rook'],
+    ['black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn'],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    ['white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn'],
+    ['white-rook', 'white-knight', 'white-bishop', 'white-queen', 'white-king', 'white-bishop', 'white-knight', 'white-rook'],
+];
