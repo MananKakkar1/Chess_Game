@@ -26,11 +26,19 @@
         <div class="options">
             <a href="#create-account.html" class="button">Create Account</a>
             <a href="chess.html" class="button">Play Online</a>
-            <a href="chess.html" class="button">Play with Bots</a>
+            <button class="button" onclick="startBotGame()">Play with Bots</button>
         </div>
     </main>
     <footer>
         <p>&copy; 2025 Chess Game. All rights reserved.</p>
     </footer>
+    <script>
+        function startBotGame() {
+            const url = new URL('chess.html', window.location.origin);
+            url.searchParams.set('mode', 'bot');
+            window.location.href = url.toString();
+        }
+    </script>
+    <script src="stockfish.js"></script>
 </body>
 </html>

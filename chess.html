@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        .bot-only {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -41,10 +46,33 @@
                 <ul id="captured-black" class="captured-pieces-container"></ul> <!-- List for captured black pieces -->
             </div>  
         </div>
+        <div class="bot-only">
+            <label for="bot-difficulty">Select Bot Difficulty:</label>
+            <select id="bot-difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+                <option value="AI">AI</option>
+            </select>
+        </div>
     </div>
     <footer>
         <p>&copy; 2025 Chess Game. All rights reserved.</p>
     </footer>
     <script src="script.js"></script>
+    <script>
+        function initializeBotUI() {
+            const botUIElements = document.querySelectorAll('.bot-only');
+            botUIElements.forEach(element => {
+                element.style.display = 'block';
+            });
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'bot') {
+            initializeBotUI();
+        }
+    </script>
+    <script src="stockfish.js"></script>
 </body>
 </html>
