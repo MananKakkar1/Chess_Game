@@ -21,6 +21,35 @@ document.body.innerHTML = '<div class="chessboard"></div><div id="reset-button">
 // Now require script.js (after all mocks and DOM are set up)
 const { isValidMove, isKingInCheck, isCheckmate, getAllValidMoves, movePiece, isPathBlocked } = require('./script');
 
+/**
+ * HELPER FUNCTIONS ---------------------------------------------------------------
+ * Places pieces on the chessboard according to a 2D array.
+ * @param {string[][]} layout - 8x8 array where each cell is a piece class or null.
+ */
+function placePieces(layout) {
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const pieceClass = layout[row][col];
+            if (pieceClass) {
+                const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                if (square) square.classList.add(pieceClass);
+            }
+        }
+    }
+}
+
+const layout = [
+    ['black-rook', 'black-knight', 'black-bishop', 'black-queen', 'black-king', 'black-bishop', 'black-knight', 'black-rook'],
+    ['black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn'],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null],
+    ['white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn'],
+    ['white-rook', 'white-knight', 'white-bishop', 'white-queen', 'white-king', 'white-bishop', 'white-knight', 'white-rook'],
+];
+
+
 beforeEach(() => {
     document.body.innerHTML = '<div class="chessboard"></div>';
     const chessboard = document.querySelector('.chessboard');
@@ -44,8 +73,6 @@ beforeEach(() => {
                     square.classList.add(pieceClass);
                 }
             }
-
-            square.addEventListener('click', () => handleSquareClick(square));
             chessboard.appendChild(square);
         }
     }
@@ -88,6 +115,24 @@ test('movePiece moves a black-pawn from (1, 4) to (2, 4)', () => {
     expect([...fromSq.classList]).not.toContain('black-pawn');
 });
 
+test('movePiece moves a white-queen from (6, 4) to (2, 4)', () => {
+    const fromSq = document.querySelector('[data-row="6"][data-col="4"]');
+    const toSq = document.querySelector('[data-row="2"][data-col="4"]');
+    fromSq.classList.add('white-queen');
+    movePiece(fromSq, toSq, 6, 4, 2, 4);
+    expect([...toSq.classList]).toContain('white-queen');
+    expect([...fromSq.classList]).not.toContain('white-queen');
+});
+
+test('movePiece moves a black-queen diagonally from (1, 4) to (3, 2)', () => {
+    const fromSq = document.querySelector('[data-row="1"][data-col="4"]');
+    const toSq = document.querySelector('[data-row="3"][data-col="2"]');
+    fromSq.classList.add('black-queen');
+    movePiece(fromSq, toSq, 1, 4, 3, 2);
+    expect([...toSq.classList]).toContain('black-queen');
+    expect([...fromSq.classList]).not.toContain('black-queen');
+});
+
 /*
 isValidMove test cases:
 test('isValidMove returns true for piece moving forward', () => {
@@ -111,6 +156,18 @@ test('isValidMove returns true for black-pawn moving forward 1 space', () => {
     fromSq.classList.add('black-pawn');
     const result = isValidMove('black-pawn', 1, 4, 2, 4, null);
     expect(result).toBe(true);
+});
+
+test('isValidMove returns false for white-queen trying to move through a pawn', () => {
+    placePieces(layout);
+    const result = isValidMove('white-queen', 0, 3, 2, 3, null);
+    expect(result).toBe(false);
+});
+
+test('isValidMove returns false for black-queen trying to move through a pawn', () => {
+    placePieces(layout);
+    const result = isValidMove('black-queen', 7, 3, 5, 3, null);
+    expect(result).toBe(false);
 });
 
 /*
@@ -147,6 +204,24 @@ test('isKingInCheck returns false when king is not attacked', () => {
     expect(result).toBe(false);
 });
 
+test('isKingInCheck returns true when black-king is attacked by a white-knight', () => {
+    const kingSq = document.querySelector('[data-row="4"][data-col="4"]');
+    kingSq.classList.add('black-king');
+    const attackerSq = document.querySelector('[data-row="6"][data-col="5"]');
+    attackerSq.classList.add('white-knight');
+    const result = isKingInCheck('black');
+    expect(result).toBe(true);
+});
+
+test('isKingInCheck returns true when black-king is attacked by a white-knight from a different orientation', () => {
+    const kingSq = document.querySelector('[data-row="4"][data-col="4"]');
+    kingSq.classList.add('black-king');
+    const attackerSq = document.querySelector('[data-row="2"][data-col="3"]');
+    attackerSq.classList.add('white-knight');
+    const result = isKingInCheck('black');
+    expect(result).toBe(true);
+});
+
 /*
 isCheckmate test cases:
 test('isCheckmate returns true when king is checkmated', () => {
@@ -181,6 +256,20 @@ test('isCheckmate returns true when black-king is checkmated by the 4-move check
     expect(result).toBe(true);
 });
 
+//This one is failing pls double check if it the test is incorrect or the function is incorrect
+test('isCheckmate returns true when black-king in the corner of the board is checkmated by 2 knights', () => {
+    const kingSq = document.querySelector('[data-row="0"][data-col="0"]');
+    kingSq.classList.add('black-king');
+    const attacker1 = document.querySelector('[data-row="2"][data-col="1"]');
+    attacker1.classList.add('white-knight');
+    const attacker2 = document.querySelector('[data-row="2"][data-col="2"]');
+    attacker2.classList.add('white-knight');
+    const attacker3 = document.querySelector('[data-row="2"][data-col="3"]');
+    attacker3.classList.add('white-knight');
+    const result = isCheckmate('black');
+    expect(result).toBe(true);
+});
+
 /*
 isPathBlocked test cases:
 test('isPathBlocked returns true when a piece blocks the path', () => {
@@ -207,30 +296,3 @@ test('isPathBlocked returns false when no piece blocks the path', () => {
     const result = isPathBlocked(6, 4, 2, 4);
     expect(result).toBe(false);
 });
-
-/**
- * Places pieces on the chessboard according to a 2D array.
- * @param {string[][]} layout - 8x8 array where each cell is a piece class or null.
- */
-function placePieces(layout) {
-    for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-            const pieceClass = layout[row][col];
-            if (pieceClass) {
-                const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-                if (square) square.classList.add(pieceClass);
-            }
-        }
-    }
-}
-
-const layout = [
-    ['black-rook', 'black-knight', 'black-bishop', 'black-queen', 'black-king', 'black-bishop', 'black-knight', 'black-rook'],
-    ['black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn', 'black-pawn'],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    ['white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn', 'white-pawn'],
-    ['white-rook', 'white-knight', 'white-bishop', 'white-queen', 'white-king', 'white-bishop', 'white-knight', 'white-rook'],
-];
