@@ -52,19 +52,72 @@ beforeEach(() => {
     }
 });
 
-/**
- * Run tests by typing `npm test` in the terminal.
- */
+/*
+Run test cases using 'npm test' in the terminal.
+*/
 
 // Add Test Cases Below
 
-// movePiece tests
+/*
+movePiece test cases:
+test('movePiece moves a piece from (r, c) to (r, c)', () => {
+    // Description: Should move the specified piece class from the source square to the destination square.
+    const fromSq = document.querySelector('[data-row="FROM_ROW"][data-col="FROM_COL"]');
+    const toSq = document.querySelector('[data-row="TO_ROW"][data-col="TO_COL"]');
+    fromSq.classList.add('pieceClass');
+    movePiece(fromSq, toSq, FROM_ROW, FROM_COL, TO_ROW, TO_COL);
+    expect([...toSq.classList]).toContain('pieceClass');
+    expect([...fromSq.classList]).not.toContain('pieceClass');
+});
+*/
 
-// isValidMove tests
+/*
+isValidMove test cases:
+test('isValidMove returns true for piece moving forward', () => {
+    // Description: Should return true if the specified piece can legally move from the source to the destination square.
+    const fromSq = document.querySelector('[data-row="FROM_ROW"][data-col="FROM_COL"]');
+    fromSq.classList.add('pieceClass');
+    const result = isValidMove('pieceClass', FROM_ROW, FROM_COL, TO_ROW, TO_COL, null);
+    expect(result).toBe(true);
+});
+*/
 
-// isKingInCheck tests
+/*
+isKingInCheck test cases:
+test('isKingInCheck returns true when king is in check by a piece', () => {
+    // Description: Should return true if the specified king is under attack by an opposing piece.
+    const kingSq = document.querySelector('[data-row="KING_ROW"][data-col="KING_COL"]');
+    kingSq.classList.add('kingClass');
+    const attackerSq = document.querySelector('[data-row="ATTACKER_ROW"][data-col="ATTACKER_COL"]');
+    attackerSq.classList.add('pieceClass');
+    const result = isKingInCheck('kingColor');
+    expect(result).toBe(true);
+});
+*/
 
-// isCheckmate tests
+/*
+isCheckmate test cases:
+test('isCheckmate returns true when king is checkmated', () => {
+    // Description: Should return true if the specified king is in checkmate and has no legal moves to escape.
+    const kingSq = document.querySelector('[data-row="KING_ROW"][data-col="KING_COL"]');
+    kingSq.classList.add('kingClass');
+    const attacker1 = document.querySelector('[data-row="ATTACKER1_ROW"][data-col="ATTACKER1_COL"]');
+    attacker1.classList.add('pieceClass');
+    const attacker2 = document.querySelector('[data-row="ATTACKER2_ROW"][data-col="ATTACKER2_COL"]');
+    attacker2.classList.add('pieceClass');
+    const result = isCheckmate('kingColor');
+    expect(result).toBe(true);
+});
+*/
 
-// isPathBlocked tests
+/*
+isPathBlocked test cases:
+test('isPathBlocked returns true when a piece blocks the path', () => {
+    // Description: Should return true if there is any piece blocking the path between the source and destination squares.
+    const blocker = document.querySelector('[data-row="BLOCKER_ROW"][data-col="BLOCKER_COL"]');
+    blocker.classList.add('pieceClass');
+    const result = isPathBlocked(FROM_ROW, FROM_COL, TO_ROW, TO_COL);
+    expect(result).toBe(true);
+});
+*/
 
