@@ -963,5 +963,5 @@ module.exports = {
     getAllValidMoves,
     getAllCheckValidMoves,
     simulateMove,
-    generateChessboard
+    movePiece
 };
