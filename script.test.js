@@ -70,6 +70,24 @@ test('movePiece moves a piece from (r, c) to (r, c)', () => {
 });
 */
 
+test('movePiece moves a white-pawn from (6, 4) to (5, 4)', () => {
+    const fromSq = document.querySelector('[data-row="6"][data-col="4"]');
+    const toSq = document.querySelector('[data-row="5"][data-col="4"]');
+    fromSq.classList.add('white-pawn');
+    movePiece(fromSq, toSq, 6, 4, 5, 4);
+    expect([...toSq.classList]).toContain('white-pawn');
+    expect([...fromSq.classList]).not.toContain('white-pawn');
+});
+
+test('movePiece moves a black-pawn from (1, 4) to (2, 4)', () => {
+    const fromSq = document.querySelector('[data-row="1"][data-col="4"]');
+    const toSq = document.querySelector('[data-row="2"][data-col="4"]');
+    fromSq.classList.add('black-pawn');
+    movePiece(fromSq, toSq, 1, 4, 2, 4);
+    expect([...toSq.classList]).toContain('black-pawn');
+    expect([...fromSq.classList]).not.toContain('black-pawn');
+});
+
 /*
 isValidMove test cases:
 test('isValidMove returns true for piece moving forward', () => {
@@ -80,6 +98,20 @@ test('isValidMove returns true for piece moving forward', () => {
     expect(result).toBe(true);
 });
 */
+
+test('isValidMove returns true for white-pawn moving forward 1 space', () => {
+    const fromSq = document.querySelector('[data-row="6"][data-col="4"]');
+    fromSq.classList.add('white-pawn');
+    const result = isValidMove('white-pawn', 6, 4, 5, 4, null);
+    expect(result).toBe(true);
+});
+
+test('isValidMove returns true for black-pawn moving forward 1 space', () => {
+    const fromSq = document.querySelector('[data-row="1"][data-col="4"]');
+    fromSq.classList.add('black-pawn');
+    const result = isValidMove('black-pawn', 1, 4, 2, 4, null);
+    expect(result).toBe(true);
+});
 
 /*
 isKingInCheck test cases:
@@ -93,6 +125,27 @@ test('isKingInCheck returns true when king is in check by a piece', () => {
     expect(result).toBe(true);
 });
 */
+
+test('isKingInCheck returns true when black-king is attacked by a white-knight', () => {
+    const kingSq = document.querySelector('[data-row="4"][data-col="4"]');
+    kingSq.classList.add('black-king');
+    const attackerSq = document.querySelector('[data-row="6"][data-col="5"]');
+    attackerSq.classList.add('white-knight');
+    const result = isKingInCheck('black');
+    expect(result).toBe(true);
+});
+
+test('isKingInCheck returns false when king is not attacked', () => {
+    const kingSq = document.querySelector('[data-row="4"][data-col="4"]');
+    kingSq.classList.add('black-king');
+    const attackerSq = document.querySelector('[data-row="6"][data-col="5"]');
+    attackerSq.classList.add('white-knight');
+    attackerSq.classList.remove('white-knight');
+    const farSq = document.querySelector('[data-row="7"][data-col="7"]');
+    farSq.classList.add('white-knight');
+    const result = isKingInCheck('black');
+    expect(result).toBe(false);
+});
 
 /*
 isCheckmate test cases:
