@@ -52,7 +52,11 @@ beforeEach(() => {
     }
 });
 
-// Test cases
+/**
+ * Run tests by typing `npm test` in the terminal.
+ */
+
+// Add Test Cases Below
 
 // movePiece tests
 
