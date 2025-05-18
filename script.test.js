@@ -16,7 +16,6 @@ global.boardState = Array.from({ length: 8 }, () => Array(8).fill(null));
 global.getPieceClass = (piece) => piece ? piece : null;
 global.handleSquareClick = () => {};
 
-// Set up the DOM before requiring script.js
 document.body.innerHTML = '<div class="chessboard"></div><div id="reset-button"></div>';
 
 // Now require script.js (after all mocks and DOM are set up)
