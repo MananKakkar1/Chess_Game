@@ -1,0 +1,12 @@
+# Ignore environment files
+.env
+
+# Node modules (if using Node.js)
+node_modules/
+
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
