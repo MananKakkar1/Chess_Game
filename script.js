@@ -955,3 +955,13 @@ function generateBotChessboard() {
 
 initializeGame();
 document.querySelector('#reset-button').addEventListener('click', resetBoard);
+module.exports = {
+    isValidMove,
+    isPathBlocked,
+    isKingInCheck,
+    isCheckmate,
+    getAllValidMoves,
+    getAllCheckValidMoves,
+    simulateMove,
+    generateChessboard
+};
