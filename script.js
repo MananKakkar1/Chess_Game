@@ -398,6 +398,7 @@ function executeMove(move) {
 
 function generateChessboard() {
     chessboard.innerHTML = ''; 
+    
     for (let row = 0; row < 8; row++) {
         for (let col = 0; col < 8; col++) {
             const square = document.createElement('div');
@@ -511,6 +512,12 @@ function handleSquareClick(square) {
 }
 
 function showGameOverOverlay(winner) {
+    const gameOverSound = document.getElementById('game-over-sound');
+    if (gameOverSound) {
+        gameOverSound.currentTime = 0;
+        gameOverSound.volume = 1.0;
+        gameOverSound.play();
+    }
     const overlay = document.getElementById('game-over-overlay');
     const winnerLabel = document.getElementById('winner-label');
     winnerLabel.textContent = `${winner} wins!`;
@@ -596,6 +603,12 @@ function movePiece(fromSquare, toSquare, fromRow, fromCol, toRow, toCol) {
     const pieceClass = [...fromSquare.classList].find(cls => cls.includes('-'));
     const targetPieceClass = [...toSquare.classList].find(cls => cls.includes('-'));
     let playerColor = targetPieceClass && targetPieceClass.startsWith('white') ? 'white' : 'black';
+    const moveSound = document.getElementById('move-sound');
+    if (moveSound) {
+        moveSound.currentTime = 0;
+        moveSound.volume = 1.0;
+        moveSound.play();
+    }
     if (targetPieceClass && !isKingInCheck(playerColor)) {
         toSquare.classList.remove(targetPieceClass);
         const capturedPiece = document.createElement('div');
@@ -636,6 +649,12 @@ function resetBoard() {
         generateBotChessboard();
     } else {
         generateChessboard();
+    }
+
+    const resetSound = document.getElementById('reset-sound');
+    if (resetSound) {
+        resetSound.currentTime = 0;
+        resetSound.play();
     }
 
     const overlay = document.getElementById('game-over-overlay');
@@ -916,7 +935,6 @@ function enableBotMode() {
 
 function initializeGame() {
     const urlParams = new URLSearchParams(window.location.search);
-    console.log(urlParams.get('mode'));
     if (urlParams.get('mode') === 'bot') {
         console.log('Bot mode enabled');
         generateBotChessboard();
