@@ -25,6 +25,9 @@
             <label for="username">Username</label>
             <input type="text" id="username" name="username" required>
 
+            <label for="email">Email</label>
+            <input type="text" id="email" name="email" required>
+
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
 
@@ -39,10 +42,11 @@
         e.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
+        const email = document.getElementById('email').value;
         const res = await fetch('http://localhost:3000/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, email, password })
         });
         const data = await res.json();
         if (data.success) {
@@ -69,7 +73,7 @@
                         e.preventDefault();
                         localStorage.removeItem('signedIn');
                         updateNav();
-                        window.location.href = 'sign-in.html'; // Redirect after sign out
+                        window.location.href = 'index.html'; // Redirect after sign out
                     };
                     signInLink.replaceWith(signOutBtn);
                 }

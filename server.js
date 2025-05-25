@@ -13,19 +13,20 @@ mongoose.connect('mongodb://localhost:27017/chessgame');
 // User schema and model
 const userSchema = new mongoose.Schema({
     username: { type: String, unique: true },
+    email: { type: String, unique: true }, // Add email field
     password: String,
 });
 const User = mongoose.model('User', userSchema);
 
 // Registration endpoint
 app.post('/api/register', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, email, password } = req.body; // Get email from request
     try {
         const hashed = await bcrypt.hash(password, 10);
-        await User.create({ username, password: hashed });
+        await User.create({ username, email, password: hashed }); // Store email
         res.json({ success: true });
     } catch (err) {
-        res.status(400).json({ success: false, message: 'Username already exists' });
+        res.status(400).json({ success: false, message: 'Username or email already exists' });
     }
 });
 
