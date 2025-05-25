@@ -12,11 +12,12 @@
     <header>
         <h1>Chess Game</h1>
         <nav>
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="rules.html" class="active">Rules</a></li>
-                <li><a href="chess.html">Play</a></li>
+            <ul class="nav-links" id="nav-links">
+                <a href="index.html" class="active">Home</a>
+                <a href="about.html">About</a>
+                <a href="rules.html">Rules</a>
+                <a href="chess.html">Play</a>
+                <a href="sign-in.html" id="sign-in-link">Sign In</a>
             </ul>
         </nav>
     </header>
@@ -45,5 +46,39 @@
     <footer>
         <p>&copy; 2025 Chess Game. All rights reserved.</p>
     </footer>
+    <script>
+        // Show Sign Out if signed in, else show Sign In
+        function updateNav() {
+            const isSignedIn = localStorage.getItem('signedIn') === 'true';
+            const navLinks = document.getElementById('nav-links');
+            const signInLink = document.getElementById('sign-in-link');
+            if (isSignedIn) {
+                // Replace Sign In with Sign Out
+                if (signInLink) {
+                    const signOutBtn = document.createElement('a');
+                    signOutBtn.href = "#";
+                    signOutBtn.textContent = "Sign Out";
+                    signOutBtn.onclick = function(e) {
+                        e.preventDefault();
+                        localStorage.removeItem('signedIn');
+                        updateNav();
+                        window.location.href = 'sign-in.html'; // Redirect after sign out
+                    };
+                    signInLink.replaceWith(signOutBtn);
+                }
+            } else {
+                // Replace Sign Out with Sign In
+                if (!signInLink) {
+                    const signOutBtn = navLinks.querySelector('a:last-child');
+                    const signIn = document.createElement('a');
+                    signIn.href = "sign-in.html";
+                    signIn.id = "sign-in-link";
+                    signIn.textContent = "Sign In";
+                    signOutBtn.replaceWith(signIn);
+                }
+            }
+        }
+        updateNav();
+    </script>
 </body>
 </html>

@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - Chess Game</title>
+    <title>Create Account - Chess Game</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
     <header>
@@ -21,29 +19,40 @@
             </ul>
         </nav>
     </header>
-    <main class="about-container">
-        <h2>About This Game</h2>
-        <p>
-            This chess game was created by a passionate developer who loves both programming and chess. 
-            The goal of this project was to combine the strategic depth of chess with the technical challenge 
-            of building an interactive web application.
-        </p>
-        <p>
-            The game was built to provide a fun and educational experience for players of all skill levels. 
-            Whether you're a beginner learning the rules or an experienced player looking to practice, 
-            this game offers something for everyone.
-        </p>
-        <p>
-            The project was developed using modern web technologies, including HTML, CSS, and JavaScript. 
-            It features a responsive design, dynamic gameplay, and options to play against bots or other players.
-        </p>
-        <p>
-            Thank you for visiting and enjoying this chess game!
-        </p>
-    </main>
-    <footer>
-        <p>&copy; 2025 Chess Game. All rights reserved.</p>
-    </footer>
+    <div class="auth-container">
+        <h2>Create Account</h2>
+        <form id="register-form">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Create Account</button>
+        </form>
+        <div class="auth-link">
+            Already have an account? <a href="sign-in.html">Sign in</a>
+        </div>
+    </div>
+    <script>
+    document.getElementById('register-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const res = await fetch('http://localhost:3000/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Account created! You can now sign in.');
+            window.location.href = 'sign-in.html';
+        } else {
+            alert(data.message || 'Registration failed.');
+        }
+    };
+    </script>
     <script>
         // Show Sign Out if signed in, else show Sign In
         function updateNav() {
