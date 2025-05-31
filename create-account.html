@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Create Account - Chess Game</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
     <header>
@@ -21,26 +19,44 @@
             </ul>
         </nav>
     </header>
-    <main class="welcome-container">
-        <h2>Welcome to Chess Game</h2>
-        <p>Choose how you'd like to play:</p>
-        <div class="options">
-            <a href="create-account.html" class="button">Create Account</a>
-            <a href="chess.html" class="button">Play Online</a>
-            <button class="button" onclick="startBotGame()">Play with Bots</button>
+    <div class="auth-container">
+        <h2>Create Account</h2>
+        <form id="register-form">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="email">Email</label>
+            <input type="text" id="email" name="email" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Create Account</button>
+        </form>
+        <div class="auth-link">
+            Already have an account? <a href="sign-in.html">Sign in</a>
         </div>
-    </main>
-    <footer>
-        <p>&copy; 2025 Chess Game. All rights reserved.</p>
-    </footer>
+    </div>
     <script>
-        function startBotGame() {
-            const url = new URL('chess.html', window.location.origin);
-            url.searchParams.set('mode', 'bot');
-            window.location.href = url.toString();
+    document.getElementById('register-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const email = document.getElementById('email').value;
+        const res = await fetch('http://localhost:3000/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Account created! You can now sign in.');
+            window.location.href = 'sign-in.html';
+        } else {
+            alert(data.message || 'Registration failed.');
         }
+    };
     </script>
-    <script src="stockfish.js"></script>
     <script>
         // Show Sign Out if signed in, else show Sign In
         function updateNav() {
